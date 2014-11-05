@@ -8,7 +8,7 @@ class TinyBSRunningTest extends \PHPUnit_Framework_TestCase {
 		$core = BootstrapUnitTest::getCore();
 		$this->assertNotNull($core);
 		$this->assertTrue($core instanceof \TinyBS\BootStrap\BootStrap);
-		$this->assertType($core->getServiceManager() instanceof \Zend\ServiceManager\ServiceManager );
+		$this->assertTrue($core->getServiceManager() instanceof \Zend\ServiceManager\ServiceManager );
 	}
 	public function testUnitTestWillRun2()
 	{
