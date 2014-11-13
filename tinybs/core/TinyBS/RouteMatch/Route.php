@@ -8,8 +8,8 @@ use Composer;
 class Route {
 	static function loadModuleRoute(BootStrap $core){
 		$composerAutoloader = ComposerAutoloader::getComposerAutoloader();
+		if(!$composerAutoloader)
 		    throw new \RuntimeException('At '.__METHOD__.' : Composer\Autoload not load!');
-		if($composerAutoloader == null)
 		$route = $core->getServiceManager()->get('route');
 		$routeMatch = $route->match($core->getServiceManager()->get('Request'));
 		if(!$routeMatch)
