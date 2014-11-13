@@ -62,6 +62,14 @@ class BootStrap {
 		$core->getServiceManager()->setService('config', $moduleConfig);
 		return $core;
 	}
+	static public function run(){
+		$core = static::initialize();
+		$routeMatch = \TinyBS\RouteMatch\Route::loadModuleRoute($core);
+		if($routeMatch)
+			;
+		else 
+			die();
+	}
 	
 	/**
 	 * load config in TINYBSROOT/tinybs/config/config.servicemanager.{factory,alias,invokableclass}.php
