@@ -3,15 +3,23 @@
 namespace TinyBSTest;
 
 class TinyBSRunningTest extends \PHPUnit_Framework_TestCase {
-	public function testUnitTestWillRun()
+    /**
+     * @test
+     * @author JiefzzLon
+     */
+	public function unitTestWillRunFirst()
+	{
+		$this->assertTrue(true);
+	}
+    /**
+     * @test
+     * @author JiefzzLon
+     */
+	public function unitTestWillRun()
 	{
 		$core = BootstrapUnitTest::getCore();
 		$this->assertNotNull($core);
 		$this->assertTrue($core instanceof \TinyBS\BootStrap\BootStrap);
 		$this->assertTrue($core->getServiceManager() instanceof \Zend\ServiceManager\ServiceManager );
-	}
-	public function testUnitTestWillRun2()
-	{
-		return true;
 	}
 }

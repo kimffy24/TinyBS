@@ -3,6 +3,7 @@
 namespace TinyBSTest;
 
 use TinyBS\BootStrap\BootStrap;
+use TinyBS\BootStrap\ComposerAutoloader;
 use RuntimeException;
 use TinyBS;
 
@@ -20,7 +21,8 @@ class BootstrapUnitTest
 	public static function init(){
 		if (($path = static::findParentPath('tinybs'))) {
 			$skeletonPath = dirname($path);
-			define('DS', DIRECTORY_SEPARATOR);
+			require $skeletonPath.'/init.php';
+			/*define('DS', DIRECTORY_SEPARATOR);
 			define('TINYBSROOT', $skeletonPath);
 			define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
 			define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
@@ -29,9 +31,10 @@ class BootstrapUnitTest
 			$composerAutoloader = require $skeletonPath.DS.'vendor'.DS.'autoload.php';
 			$composerAutoloader -> add('TinyBS', TINYBSROOT.DS.'tinybs'.DS.'core');
 			$composerAutoloader -> add('TinyBSTest', __DIR__);
-		}
-		else throw new RuntimeException("Couldn't load TinyBS Core");
+			ComposerAutoloader::setComposerAutoloader($composerAutoloader);*/
+		} else throw new RuntimeException("Couldn't load TinyBS Core");
 		$core = BootStrap::initialize();
+		BootStrap::loadUserConfig($core);
 		static::$serviceManager = $core->getServiceManager();
 		static::$core = $core;
 	}

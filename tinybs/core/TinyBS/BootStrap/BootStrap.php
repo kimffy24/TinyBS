@@ -20,19 +20,34 @@ class BootStrap {
 		return $this->serviceManager;
 	}
 	
+	const PSR_0_CONFIG_NAME = 'config.psr0.php';
+	const PSR_4_CONFIG_NAME = 'config.psr4.php';
+	const CLASSMAP_CONFIG_NAME = 'config.classmap.php';
+	const LIB_MODULE_CONFIG_NAME = 'config.lib.module.php';
+	const MODULE_CONFIG_NAME = 'config.module.php';
 	
 	private static $preLoadConfigFiles = array (
-			'config.psr0.php',
-			'config.psr4.php',
-			'config.classmap.php' 
+			self::PSR_0_CONFIG_NAME,
+			self::PSR_4_CONFIG_NAME,
+			self::CLASSMAP_CONFIG_NAME 
 	);
-	private static $postLoadConfigFiles = 'config.module.php';
+	private static $postLoadConfigFiles = self::MODULE_CONFIG_NAME;
+	static public function prepareTinyBSComposerAutoload(){
+		foreach ( BootStrap::$preLoadConfigFiles as $v )
+			BootStrap::setConfigIntoComposerAutoloader ( $v, true );
+	}
 	static public function prepareUserComposerAutoload(){
 		foreach ( BootStrap::$preLoadConfigFiles as $v )
 			BootStrap::setConfigIntoComposerAutoloader ( $v );
 	}
-	static public function prepareUserModule() {
-		BootStrap::setConfigIntoComposerAutoloader ( BootStrap::$postLoadConfigFiles );
+	static public function prepareUserLibModule() {
+	    $ModuleLibConfigName = USER_CONFIG_DIR.DS.self::LIB_MODULE_CONFIG_NAME;
+		if ( ( $fileName = stream_resolve_include_path( $ModuleLibConfigName ) ) !== false ){
+		    $libModule = require $fileName;
+		    $composerAutoloader = ComposerAutoloader::getComposerAutoloader ();
+		    foreach ($libModule as $v)
+		      $composerAutoloader->set ( $v, MODULELOCATION );
+		}
 	}
 	
 	/**
@@ -41,15 +56,23 @@ class BootStrap {
 	 * @return \TinyBS\BootStrap\BootStrap
 	 */
 	static public function initialize() {
+		//load TinyBs setting for ComposerAutoloader.
+		BootStrap::prepareTinyBSComposerAutoload ();
 		//build an instance of \TinyBS\BootStrap\BootStrap.
 		$core = new BootStrap ( new ServiceManager () );
 		//load setting for inner ServiceManager that inside above instance.
 		BootStrap::initServiceManager($core->getServiceManager());
+		return $core;
+	}
+    static public function loadUserConfig(self $core){
 		//load user setting for ComposerAutoloader.
 		BootStrap::prepareUserComposerAutoload ();
 		//load user module
-		BootStrap::prepareUserModule();
+		BootStrap::prepareUserLibModule();
 		
+		$ModuleConfigName = USER_CONFIG_DIR.DS.BootStrap::$postLoadConfigFiles;
+		if ( ( $fileName = stream_resolve_include_path( $ModuleConfigName ) ) === false )
+		    throw new \RuntimeException('At '.$ModuleConfigName.' : There no config file about modules!');
 		$moduleConfig = array();
 		$modules = require USER_CONFIG_DIR.DS.BootStrap::$postLoadConfigFiles;
 		foreach($modules as $userModule){
@@ -60,14 +83,21 @@ class BootStrap {
 			$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
 		}
 		$core->getServiceManager()->setService('config', $moduleConfig);
-		return $core;
-	}
+    }
 	static public function run(){
 		$core = static::initialize();
-		$routeMatch = \TinyBS\RouteMatch\Route::loadModuleRoute($core);
-		if($routeMatch)
-			;
-		else 
+		static::loadUserConfig($core);
+		$routeMatch = Route::loadModuleRoute($core);
+		if($routeMatch) {
+			$matchResult = $routeMatch->getParams();
+			$targetController = isset($matchResult['__NAMESPACE__'])?
+                $matchResult['__NAMESPACE__'].'\\'.$matchResult['controller']:
+                $matchResult['controller']
+            ;
+			if(class_exists($targetController)){
+			    $core->getServiceManager()->setService($targetController, new $targetController());
+			}
+		} else 
 			die();
 	}
 	
@@ -130,8 +160,8 @@ class BootStrap {
 	 */
 	static private function setConfigIntoComposerAutoloader($configName, $isSysConfig = false) {
 		$config = ($isSysConfig)?
-			TINYBSROOT . DS . 'tinybs' . DS . 'config' . DS . $configName:
-			TINYBSROOT . DS . 'config' . DS . $configName;
+			TINY_CONFIG_DIR . DS . $configName:
+			USER_CONFIG_DIR . DS . $configName;
 		if (file_exists ( $config ))
 			$keys = require $config;
 		else
@@ -140,15 +170,15 @@ class BootStrap {
 		
 		if (is_array ( $keys ) and count ( $keys ))
 			switch ($configName) {
-				case BootStrap::$preLoadConfigFiles [0] :
+				case self::PSR_0_CONFIG_NAME :
 					foreach ( $keys as $k => $v )
 						$composerAutoloader->set ( $k, BootStrap::generalPath ( $v ) );
 					break;
-				case BootStrap::$preLoadConfigFiles [1] :
+				case self::PSR_4_CONFIG_NAME :
 					foreach ( $keys as $k => $v )
 						$composerAutoloader->setPsr4 ( $k, BootStrap::generalPath ( $v ) );
 					break;
-				case BootStrap::$preLoadConfigFiles [2] :
+				case self::CLASSMAP_CONFIG_NAME :
 					$composerAutoloader->addClassMap ( $keys );
 					break;
 			}

@@ -6,3 +6,4 @@
 chdir(dirname(__DIR__));
 // Bootstrap the project
 require 'init.php';
+TinyBS\BootStrap\BootStrap::run();

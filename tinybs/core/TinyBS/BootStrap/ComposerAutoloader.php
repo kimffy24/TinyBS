@@ -3,7 +3,7 @@
 namespace TinyBS\BootStrap;
 
 class ComposerAutoloader {
-	static private $composerAutoloader;
+	static private $composerAutoloader=null;
 	/**
 	 * @return the $composerAutoloader
 	 */
