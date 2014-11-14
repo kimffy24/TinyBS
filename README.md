@@ -2,6 +2,7 @@ TinyBS
 
 ======
 为什么
+
 	Zendframework2的代码设计非常优雅，无奈这个框架也很很臃肿的，写这个skeleton仅仅为了“瘦瘦”的使用它而已。使用Zend/Mvc中的route部分作Request路由匹配，这部分很好用。不再使用EventModule模块作为默认的启动策略。(Zend\Mvc模块主要就是通过EventManager来触发几个核心事件来完成启动流程的)所以还是改用简单的MVC吧。鄙人觉得php还是简单好，MVVM的设计固然先进，但对于php这类脚本语言，使用这些优秀而复杂的设计会浪费很多加载时间。(用时间可以看看Zendframework2的MVVM实现和EventManager，阅读源代码能让你更好地理解这些高阶的设计模式)我还是觉得简单MVC比较合适。不在使用ModuleManager，和EventManager一样，留作普通模块，按需调用。目前在研究怎么使用ServiceManager比较好，ServiceManager作为Di的上层套件，实现解耦的利器。因此ServiceManager成了我跟框架唯一的耦合的地方, 即使改用别的框架的来bootstrap项目的话，成本也就在于按ZendFramework的ServiceManager的风格来封装一个简单的、合适的、依赖管理类而已
 
 ======
