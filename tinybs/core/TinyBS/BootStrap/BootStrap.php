@@ -96,9 +96,11 @@ class BootStrap {
             ;
 			if(class_exists($targetController)){
 			    $core->getServiceManager()->setService($targetController, new $targetController());
-			}
+			} else 
+			    throw new \RuntimeException('At '.__METHOD__.' : There match module doesn\'t exist!');
 		} else 
 			die();
+		Route::dispatch($core);
 	}
 	
 	/**
