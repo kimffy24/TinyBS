@@ -18,10 +18,17 @@ class Route {
 		$routeMatchParams = $routeMatch->getParams();
 		if(!isset($routeMatchParams['__NAMESPACE__']) and !isset($routeMatchParams['controller']))
 		    throw new \RuntimeException('At '.__METHOD__.' : There no controller at match modules!');
-		$matchNamespace = (isset($routeMatchParams['__NAMESPACE__']))?$routeMatchParams['__NAMESPACE__']:$routeMatchParams['controller'];
-		$matchNamespace = substr($matchNamespace, 0, strpos($matchNamespace, '\\'));
+		$targetController = isset($routeMatchParams['__NAMESPACE__'])?
+            $routeMatchParams['__NAMESPACE__'].'\\'.$routeMatchParams['controller']:
+            $routeMatchParams['controller']
+        ;
+        $matchNamespace = substr($targetController, 0, strpos($targetController, '\\'));
 		$composerAutoloader->set($matchNamespace,MODULELOCATION);
-		return $routeMatch;
+		if(class_exists($targetController)){
+            $core->getServiceManager()->setService($targetController, new $targetController());
+		} else 
+		    throw new \RuntimeException('At '.__METHOD__.' : There match module doesn\'t exist!');
+		return ;
 	}
 	static public function dispatch(BootStrap $core){
 	    $matchMatchParamArray = $core->getServiceManager()->get('RouteMatch')->getParams();

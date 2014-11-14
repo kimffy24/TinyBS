@@ -87,19 +87,7 @@ class BootStrap {
 	static public function run(){
 		$core = static::initialize();
 		static::loadUserConfig($core);
-		$routeMatch = Route::loadModuleRoute($core);
-		if($routeMatch) {
-			$matchResult = $routeMatch->getParams();
-			$targetController = isset($matchResult['__NAMESPACE__'])?
-                $matchResult['__NAMESPACE__'].'\\'.$matchResult['controller']:
-                $matchResult['controller']
-            ;
-			if(class_exists($targetController)){
-			    $core->getServiceManager()->setService($targetController, new $targetController());
-			} else 
-			    throw new \RuntimeException('At '.__METHOD__.' : There match module doesn\'t exist!');
-		} else 
-			die();
+		Route::loadModuleRoute($core);
 		Route::dispatch($core);
 	}
 	
