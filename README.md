@@ -6,13 +6,20 @@ TinyBS
 
 ======
 config/config(*).php下的配置文件和src/main/conf/*/config.php的作用
-1. config.lib.module.php中放置每次都为加载的用户库模块，对应的模块文件放在src/main/php (这个目录结构是仿的别的项目的)
-2. config.module.php中放置应用模块，对应的模块文件放在src/main/php (这个目录结构是仿的别的项目的) (同上)
-3. config.psr0.php， config.psr4.php， config.classmap.php 则用来配置composer的加载行为的，可以看看composer autoloader怎么玩
-4. src/main/conf/*/config.php这里本是放模块的配置文件的，config/config.module.php中指定的模块全部都会被加载，其内容能在ServiceManager中能获取。(粗糙的设计，待改进)
+
+    1. config.lib.module.php中放置每次都为加载的用户库模块，对应的模块文件放在src/main/php (这个目录结构是仿的别的项目的)
+    
+    2. config.module.php中放置应用模块，对应的模块文件放在src/main/php (这个目录结构是仿的别的项目的) (同上)
+    
+    3. config.psr0.php， config.psr4.php， config.classmap.php 则用来配置composer的加载行为的，可以看看composer autoloader怎么玩
+    
+    4. src/main/conf/*/config.php这里本是放模块的配置文件的，config/config.module.php中指定的模块全部都会被加载，其内容能在ServiceManager中能获取。(粗糙的设计，待改进)
 
 ======
 TODO
-1. 没有渲染策略。。
-2. ServiceManager在ZendFramework2 Skeleton中放置了多延迟加载的类，我只留下了3个，放在tinybs/config/config.servicemanager.factory.php,这3个是用于做RouteMatch用的。其他的都改为按需加载。没测试有什么问题。
-3. 改天把官网上的Ablum模块拿下来玩玩
+
+    1. 没有渲染策略。。
+    
+    2. ServiceManager在ZendFramework2 Skeleton中放置了多延迟加载的类，我只留下了3个，放在tinybs/config/config.servicemanager.factory.php,这3个是用于做RouteMatch用的。其他的都改为按需加载。没测试有什么问题。
+    
+    3. 改天把官网上的Ablum模块拿下来玩玩
