@@ -3,7 +3,6 @@ namespace TinyBS\RouteMatch;
 
 use TinyBS\BootStrap\BootStrap;
 use TinyBS\BootStrap\ComposerAutoloader;
-use Composer;
 
 class Route {
 	static function loadModuleRoute(BootStrap $core){
@@ -36,6 +35,7 @@ class Route {
 	       $matchMatchParamArray['__NAMESPACE__'].'\\'.$matchMatchParamArray['controller']:
 	       $matchMatchParamArray['controller'];
 	    $matchAction = $matchMatchParamArray['action'].'Action';
-	    return call_user_func_array(array($core->getServiceManager()->get($matchController), $matchAction), array());
+	    $bootstrapResult = call_user_func_array(array($core->getServiceManager()->get($matchController), $matchAction), array());
+	    return $bootstrapResult;
 	}
 }

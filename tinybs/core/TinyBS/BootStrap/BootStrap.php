@@ -84,11 +84,16 @@ class BootStrap {
 		}
 		$core->getServiceManager()->setService('config', $moduleConfig);
     }
+	static public function render(self $core, $bootstrapResult){
+	    var_dump($bootstrapResult);
+	    return $bootstrapResult;
+	}
 	static public function run(){
 		$core = static::initialize();
 		static::loadUserConfig($core);
 		Route::loadModuleRoute($core);
-		Route::dispatch($core);
+		$bootstrapResult = Route::dispatch($core);
+		return static::render($core, $bootstrapResult);
 	}
 	
 	/**
