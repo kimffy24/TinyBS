@@ -1,6 +1,12 @@
 TinyBS
 ============
 
+Howto
+------------
+
+    cd /path/to/project && php composer.phar slef-update && php composer.phar install
+        详细见composer怎么用
+
 为什么
 ------------
 
@@ -14,7 +20,7 @@ TinyBS
 	因此ServiceManager成了我跟框架唯一的耦合的地方, 即使改用别的框架的来bootstrap项目的话，
 	成本也就在于按ZendFramework的ServiceManager的风格来封装一个简单的、合适的、依赖管理类而已。
 
-config/config(*).php下的配置文件和src/main/conf/*/config.php的作用
+config/config(\*).php下的配置文件和src/main/conf/\*/config.php的作用
 ------------
 
     1. config.lib.module.php中放置每次都为加载的用户库模块，对应的模块文件放在src/main/php (这个目录结构是仿的别的项目的)
