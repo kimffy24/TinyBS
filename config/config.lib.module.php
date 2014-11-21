@@ -11,7 +11,5 @@
  *  it contains two module name;
  */
 return array(
-	//'demo',
-	//'album'
 	'Kklib'
 );
