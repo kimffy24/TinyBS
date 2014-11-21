@@ -2,7 +2,7 @@
 return array (
 		'router' => array (
 				'routes' => array (
-						'order' => array (
+						'helloworld' => array (
 								'type' => 'Segment',
 								'options' => array (
 										'route' => '/helloworld[/]',

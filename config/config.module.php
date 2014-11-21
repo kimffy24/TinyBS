@@ -14,4 +14,5 @@ return array(
 	//'demo',
 	//'album'
 	'HelloWorldTinyBS',
+    array('Order', 'C:\\Users\\Administrator\\Zend\\workspaces\\DefaultWorkspace11\\Order\\Order')
 );

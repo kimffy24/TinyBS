@@ -50,11 +50,6 @@ class BootStrap {
 		}
 	}
 	
-	/**
-	 * Framework running.
-	 * 
-	 * @return \TinyBS\BootStrap\BootStrap
-	 */
 	static public function initialize() {
 		//load TinyBs setting for ComposerAutoloader.
 		BootStrap::prepareTinyBSComposerAutoload ();
@@ -73,27 +68,57 @@ class BootStrap {
 		$ModuleConfigName = USER_CONFIG_DIR.DS.BootStrap::$postLoadConfigFiles;
 		if ( ( $fileName = stream_resolve_include_path( $ModuleConfigName ) ) === false )
 		    throw new \RuntimeException('At '.$ModuleConfigName.' : There no config file about modules!');
-		$moduleConfig = array();
 		$modules = require USER_CONFIG_DIR.DS.BootStrap::$postLoadConfigFiles;
-		foreach($modules as $userModule){
-			$configModule = MODULECONFIG.DS.$userModule.DS.'config.php';
-			if(!file_exists($configModule))
-				throw new \RuntimeException("There no config file '.$configModule.' on loading module ".$userModule.'. ');
-			$moduleDetails = require $configModule;
-			$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
-		}
-		$core->getServiceManager()->setService('config', $moduleConfig);
+		$moduleConfigs = static::loadModulesConfig($modules);
+		$core->getServiceManager()->setService('config', $moduleConfigs);
     }
 	static public function render(self $core, $bootstrapResult){
 	    var_dump($bootstrapResult);
 	    return $bootstrapResult;
 	}
+	/**
+	 * Framework running.
+	 * 
+	 * @return \TinyBS\BootStrap\BootStrap
+	 */
 	static public function run(){
 		$core = static::initialize();
 		static::loadUserConfig($core);
 		Route::loadModuleRoute($core);
 		$bootstrapResult = Route::dispatch($core);
 		return static::render($core, $bootstrapResult);
+	}
+	
+	/**
+	 * load user module's config file and return a combine set.
+	 * @param array $modules
+	 * @throws \RuntimeException
+	 * @return array <multitype:, array, unknown>
+	 */
+	static private function loadModulesConfig($modules){
+		$moduleConfig = array();
+		foreach($modules as $userModule){
+		    if(is_string($userModule)){
+    			$tempFileName = MODULECONFIG.DS.$userModule.DS.'module.config.php';
+    			if( ( $moduleConfigFile = stream_resolve_include_path( $tempFileName ) ) === false )
+    				throw new \RuntimeException("There no config file '.$tempFileName.' on loading module ".$userModule.'. ');
+    			$moduleDetails = require $moduleConfigFile;
+    			$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
+		    } elseif(is_array($userModule) and count($userModule)>1) {
+		        // >>>specified module name
+		        $moduleName = $userModule[0];
+		        // >>>specified the module path
+		        $modulePath = $userModule[1];
+		        // >>> check if the module config file is exits.
+    			$tempFileName = $modulePath.DS.'config'.DS.'module.config.php';
+		        if(!file_exists($tempFileName))
+    				throw new \RuntimeException("There no config file '.$tempFileName.' on loading module ".$moduleName.'. ');
+		        // >>> load the module config file.
+    			$moduleDetails = require $tempFileName;
+    			$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
+		    }
+		}
+		return $moduleConfig;
 	}
 	
 	/**
