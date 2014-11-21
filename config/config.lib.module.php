@@ -1,14 +1,7 @@
 <?php
 /**
- * module will be loaded by TinyBS\BootStrap\BootStrap::prepare();
- * please offer your module name here.
+ * rule list as config/config.module.php
  * 
- *  like this:
- *      return array(
- *  	   'demo',
- *  	   'album'
- *      );
- *  it contains two module name;
  */
 return array(
 	'Kklib'
