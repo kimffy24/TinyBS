@@ -6,10 +6,6 @@
  */
 define('DS', DIRECTORY_SEPARATOR);
 define('TINYBSROOT', __DIR__);
-define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
-define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
-define('MODULECONFIG', TINYBSROOT.DS.'src'.DS.'main'.DS.'config');
-define('MODULELOCATION', TINYBSROOT.DS.'src'.DS.'main'.DS.'src');
 
 $composerAutoload = require 'init_autoloader.php';
 $composerAutoload->add('TinyBS', TINYBSROOT.DS.'tinybs'.DS.'core');

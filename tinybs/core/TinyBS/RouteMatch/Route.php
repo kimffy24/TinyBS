@@ -3,6 +3,7 @@ namespace TinyBS\RouteMatch;
 
 use TinyBS\BootStrap\BootStrap;
 use TinyBS\BootStrap\ComposerAutoloader;
+use TinyBS\SimpleMvc\BaseController;
 
 class Route {
 	static function loadModuleRoute(BootStrap $core){
@@ -24,7 +25,10 @@ class Route {
         $matchNamespace = substr($targetController, 0, strpos($targetController, '\\'));
 		$composerAutoloader->set($matchNamespace,MODULELOCATION);
 		if(class_exists($targetController)){
-            $core->getServiceManager()->setService($targetController, new $targetController());
+		    $aimController = new $targetController();
+		    if(($aimController instanceof BaseController) or is_callable($aimController, 'setServiceLocator'))
+		        $aimController->setServiceLocator($core->getServiceManager());
+            $core->getServiceManager()->setService($targetController, $aimController);
 		} else 
 		    throw new \RuntimeException('At '.__METHOD__.' : There match module doesn\'t exist!');
 		return ;

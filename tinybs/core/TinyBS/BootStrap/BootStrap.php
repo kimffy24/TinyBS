@@ -6,6 +6,11 @@ use Zend\ServiceManager\ServiceManager;
 use Zend\Stdlib\ArrayUtils;
 use TinyBS\RouteMatch\Route;
 
+define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
+define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
+define('MODULECONFIG', TINYBSROOT.DS.'src'.DS.'main'.DS.'config');
+define('MODULELOCATION', TINYBSROOT.DS.'src'.DS.'main'.DS.'src');
+
 class BootStrap {
 	private $serviceManager;
 	public function __construct(ServiceManager $sm) {
@@ -34,10 +39,8 @@ class BootStrap {
 	private static $postLoadConfigFiles = self::MODULE_CONFIG_NAME;
 	
 	static public function initialize() {
-		//load TinyBs setting for ComposerAutoloader.
-		BootStrap::prepareTinyBSComposerAutoload ();
-		//load user setting for ComposerAutoloader.
-		BootStrap::prepareUserComposerAutoload ();
+		//load  setting for ComposerAutoloader.
+		BootStrap::prepareComposerAutoload ();
 		//build an instance of \TinyBS\BootStrap\BootStrap.
 		$core = new BootStrap ( new ServiceManager () );
 		//load setting for inner ServiceManager that inside above instance.
@@ -62,6 +65,7 @@ class BootStrap {
 		
 		$allConfigs = ArrayUtils::merge($libModuleConfigs, $moduleConfigs);
 		$core->getServiceManager()->setService('config', $allConfigs);
+		static::configServiceManager($core->getServiceManager());
     }
 	static public function render(self $core, $bootstrapResult){
 	    var_dump($bootstrapResult);
@@ -80,21 +84,13 @@ class BootStrap {
 	}
 	
 	/**
-	 * load tinybs/config/config.{psr0,psr4,classmap}.php into ComposerAutoloader
+	 * load {,tinybs/}config/config.{psr0,psr4,classmap}.php into ComposerAutoloader
 	 * @author JiefzzLon
 	 * @return null
 	 */
-	static public function prepareTinyBSComposerAutoload(){
+	static public function prepareComposerAutoload(){
 	    foreach ( BootStrap::$preLoadConfigFiles as $v )
 	        BootStrap::setConfigIntoComposerAutoloader ( $v, true );
-	}
-	
-	/**
-	 * load config/config.{psr0,psr4,classmap}.php into ComposerAutoloader
-	 * @author JiefzzLon
-	 * @return null
-	 */
-	static public function prepareUserComposerAutoload(){
 	    foreach ( BootStrap::$preLoadConfigFiles as $v )
 	        BootStrap::setConfigIntoComposerAutoloader ( $v );
 	}
@@ -163,34 +159,6 @@ class BootStrap {
 	}
 	
 	/**
-	 * load config in TINYBSROOT/tinybs/config/config.servicemanager.{factory,alias,invokableclass}.php
-	 * 
-	 * @param ServiceManager $serviceManager
-	 * @author JiefzzLon
-	 */
-	static private function initServiceManager(ServiceManager $serviceManager) {
-		$serviceManager->setService ( 'ServiceManager', $serviceManager );
-		$serviceManager->setAlias ( 'Zend\ServiceManager\ServiceLocatorInterface', 'ServiceManager' );
-		$serviceManager->setAlias ( 'Zend\ServiceManager\ServiceManager', 'ServiceManager' );
-		$initServiceManager = [
-			'factory' => 'setFactory',
-			'alias' => 'setAlias',
-			'invokableclass' => 'setInvokableClass',
-		];
-		foreach( $initServiceManager as $k => $v ) {
-			$result = stream_resolve_include_path(
-					TINYBSROOT . DS . 'tinybs' . DS . 'config' . DS . 'config.servicemanager.'.$k.'.php'
-			);
-            if ($result !== false) {
-            	$config = require $result;
-            	if(!count($config)) continue;
-            	foreach($config as $key=> $value)
-                	$serviceManager->$v($key, $value);
-            }
-		}
-	}
-	
-	/**
 	 * general the path to Absolutely Path
 	 *
 	 * @param unknown $path        	
@@ -243,5 +211,65 @@ class BootStrap {
 					$composerAutoloader->addClassMap ( $keys );
 					break;
 			}
+	}
+
+	/**
+	 * load config in TINYBSROOT/tinybs/config/config.servicemanager.{factory,alias,invokableclass}.php
+	 *
+	 * @param ServiceManager $serviceManager
+	 * @author JiefzzLon
+	 */
+	static private function initServiceManager(ServiceManager $serviceManager) {
+	    $serviceManager->setService ( 'ServiceManager', $serviceManager );
+	    $serviceManager->setAlias ( 'Zend\ServiceManager\ServiceLocatorInterface', 'ServiceManager' );
+	    $serviceManager->setAlias ( 'Zend\ServiceManager\ServiceManager', 'ServiceManager' );
+	    $initServiceManager = [
+	        'factory' => 'setFactory',
+	        'alias' => 'setAlias',
+	        'invokableclass' => 'setInvokableClass',
+	    ];
+	    foreach( $initServiceManager as $k => $v ) {
+	        $result = stream_resolve_include_path(
+	            TINYBSROOT . DS . 'tinybs' . DS . 'config' . DS . 'config.servicemanager.'.$k.'.php'
+	        );
+	        if ($result !== false) {
+	            $config = require $result;
+	            if(!count($config)) continue;
+	            foreach($config as $key=> $value)
+	                $serviceManager->$v($key, $value);
+	        }
+	    }
+	}
+
+	static private function configServiceManager(ServiceManager $serviceManager, $configArray = array()){
+	    if(count($configArray)<1){
+	        $allConfigArray = $serviceManager->get ( 'Config' );
+	        $configArray = $allConfigArray['service_manager'];
+	    }
+	    foreach ($configArray as $k => $v) {
+	        $method = '';
+	        $args =  array();
+	        switch($k){
+	            case 'abstract_factories':
+	                $method = 'addAbstractFactory';
+	                break;
+	            case 'aliases':
+	                $method = 'setAlias';break;
+	            case 'factories':
+	                $method = 'setFactory';break;
+	            case 'invokables':
+	                $method = 'setInvokableClass';break;
+	            case 'services':
+	                $method = 'setService';break;
+	            case 'shared':
+	                $method = 'setShared';break;
+	            default:
+	                throw new \RuntimeException(__METHOD__.'() There no service '.$k.' in ServiceManager');
+	        }
+	        foreach ($v as $key => $value) {
+                $args = ($method != 'abstract_factories')?array($key, $value):array($value);
+                call_user_func_array(array($serviceManager, $method),$args);
+	        }
+	    }
 	}
 }
