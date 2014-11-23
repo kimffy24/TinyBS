@@ -3,13 +3,11 @@
 namespace HelloWorldTinyBS\Controller;
 
 use TinyBS\SimpleMvc\BaseController;
-use Kklib\FirstLibrary;
 
 class HelloWorld extends BaseController
 {
 	public function helloWorldAction(){
-	    $lib = new FirstLibrary();
-	    var_dump($this->getServiceLocator());
+	    $lib = $this->getServiceLocator()->get('FirstLibrary');
 		return array(
 		    'msg' => "HelloWorldTinyBS: Bootstrap is Ok.",
 		    '$lib->returnTrue()' => $lib->returnTrue(),
