@@ -31,12 +31,13 @@ class BootStrap {
 	const LIB_MODULE_CONFIG_NAME = 'config.lib.module.php';
 	const MODULE_CONFIG_NAME = 'config.module.php';
 	
-	private static $preLoadConfigFiles = array (
+	static private $preLoadConfigFiles = array (
 			self::PSR_0_CONFIG_NAME,
 			self::PSR_4_CONFIG_NAME,
 			self::CLASSMAP_CONFIG_NAME 
 	);
-	private static $postLoadConfigFiles = self::MODULE_CONFIG_NAME;
+	static private $postLoadConfigFiles = self::MODULE_CONFIG_NAME;
+	static private $modulePathMap = array();
 	
 	static public function initialize() {
 		//load  setting for ComposerAutoloader.
@@ -44,28 +45,42 @@ class BootStrap {
 		//build an instance of \TinyBS\BootStrap\BootStrap.
 		$core = new BootStrap ( new ServiceManager () );
 		//load setting for inner ServiceManager that inside above instance.
-		BootStrap::initServiceManager($core->getServiceManager());
+		ServiceManagerUtils::initServiceManager($core->getServiceManager());
 		return $core;
 	}
     static public function loadUserConfig(self $core){
 		//load user module
 		BootStrap::prepareUserLibModule();
 		
-		$moduleConfigName = USER_CONFIG_DIR.DS.BootStrap::$postLoadConfigFiles;
+		/* $moduleConfigName = ;
 		if ( ( $fileName = stream_resolve_include_path( $moduleConfigName ) ) === false )
 		    throw new \RuntimeException('At '.$moduleConfigName.' : There no config file about modules!');
 		$modules = require $fileName;
 		$moduleConfigs = static::loadModulesConfig($modules);
 		
-		$libModuleConfigName = USER_CONFIG_DIR.DS.BootStrap::LIB_MODULE_CONFIG_NAME;
+		$libModuleConfigName = ;
 		if ( ( $libFileName = stream_resolve_include_path( $libModuleConfigName ) ) === false )
 		    throw new \RuntimeException('At '.$libModuleConfigName.' : There no config file about modules!');
 		$libModules = require $libFileName;
-		$libModuleConfigs = static::loadModulesConfig($libModules, false);
+		$libModuleConfigs = static::loadModulesConfig($libModules, false); */
 		
-		$allConfigs = ArrayUtils::merge($libModuleConfigs, $moduleConfigs);
-		$core->getServiceManager()->setService('config', $allConfigs);
-		static::configServiceManager($core->getServiceManager());
+		$moduleConfigs = array();
+		$loadConfigStep = array(
+		    array(USER_CONFIG_DIR.DS.BootStrap::$postLoadConfigFiles, true),
+		    array(USER_CONFIG_DIR.DS.BootStrap::LIB_MODULE_CONFIG_NAME, false)
+		);
+		foreach ($loadConfigStep as $v) {
+		    $moduleConfigName = $v[0];
+    		if ( ( $libFileName = stream_resolve_include_path( $moduleConfigName ) ) === false )
+    		    throw new \RuntimeException('At '.$moduleConfigName.' : There no config file about modules!');
+    		$modules = require $libFileName;
+    		$moduleConfigs = ArrayUtils::merge(static::loadModulesConfig($modules, $v[1]), $moduleConfigs);;
+		}
+		
+		//$allConfigs = ArrayUtils::merge($libModuleConfigs, $moduleConfigs);
+		//$core->getServiceManager()->setService('config', $allConfigs);
+		$core->getServiceManager()->setService('config', $moduleConfigs);
+		ServiceManagerUtils::configServiceManager($core->getServiceManager());
     }
 	static public function render(self $core, $bootstrapResult){
 	    var_dump($bootstrapResult);
@@ -125,6 +140,7 @@ class BootStrap {
 	/**
 	 * load user module's config file and return a combine set.
 	 * @param array $modules
+	 * @param boolean $strict whether throw a RuntimeException or not when the module config doesn't exist.
 	 * @throws \RuntimeException
 	 * @return array <multitype:, array, unknown>
 	 */
@@ -137,6 +153,8 @@ class BootStrap {
     			    if($strict)
     				    throw new \RuntimeException("There no config file '.$tempFileName.' on loading module ".$userModule.'. ');
     			    else continue;
+    			// set the path map
+    			static::$modulePathMap[$userModule] = MODULELOCATION;
     			$moduleDetails = require $moduleConfigFile;
     			$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
 		    } elseif(is_array($userModule) and count($userModule)>1) {
@@ -150,6 +168,7 @@ class BootStrap {
     			    if($strict)
     				    throw new \RuntimeException("There no config file '.$tempFileName.' on loading module ".$moduleName.'. ');
     			    else continue;
+    			static::$modulePathMap[$moduleName] = $modulePath.DS.'src';
 		        // >>> load the module config file.
     			$moduleDetails = require $tempFileName;
     			$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
@@ -212,64 +231,12 @@ class BootStrap {
 					break;
 			}
 	}
-
-	/**
-	 * load config in TINYBSROOT/tinybs/config/config.servicemanager.{factory,alias,invokableclass}.php
-	 *
-	 * @param ServiceManager $serviceManager
-	 * @author JiefzzLon
-	 */
-	static private function initServiceManager(ServiceManager $serviceManager) {
-	    $serviceManager->setService ( 'ServiceManager', $serviceManager );
-	    $serviceManager->setAlias ( 'Zend\ServiceManager\ServiceLocatorInterface', 'ServiceManager' );
-	    $serviceManager->setAlias ( 'Zend\ServiceManager\ServiceManager', 'ServiceManager' );
-	    $initServiceManager = [
-	        'factory' => 'setFactory',
-	        'alias' => 'setAlias',
-	        'invokableclass' => 'setInvokableClass',
-	    ];
-	    foreach( $initServiceManager as $k => $v ) {
-	        $result = stream_resolve_include_path(
-	            TINYBSROOT . DS . 'tinybs' . DS . 'config' . DS . 'config.servicemanager.'.$k.'.php'
-	        );
-	        if ($result !== false) {
-	            $config = require $result;
-	            if(!count($config)) continue;
-	            foreach($config as $key=> $value)
-	                $serviceManager->$v($key, $value);
-	        }
-	    }
-	}
-
-	static private function configServiceManager(ServiceManager $serviceManager, $configArray = array()){
-	    if(count($configArray)<1){
-	        $allConfigArray = $serviceManager->get ( 'Config' );
-	        $configArray = $allConfigArray['service_manager'];
-	    }
-	    foreach ($configArray as $k => $v) {
-	        $method = '';
-	        $args =  array();
-	        switch($k){
-	            case 'abstract_factories':
-	                $method = 'addAbstractFactory';
-	                break;
-	            case 'aliases':
-	                $method = 'setAlias';break;
-	            case 'factories':
-	                $method = 'setFactory';break;
-	            case 'invokables':
-	                $method = 'setInvokableClass';break;
-	            case 'services':
-	                $method = 'setService';break;
-	            case 'shared':
-	                $method = 'setShared';break;
-	            default:
-	                throw new \RuntimeException(__METHOD__.'() There no service '.$k.' in ServiceManager');
-	        }
-	        foreach ($v as $key => $value) {
-                $args = ($method != 'abstract_factories')?array($key, $value):array($value);
-                call_user_func_array(array($serviceManager, $method),$args);
-	        }
-	    }
+    
+	static public function loadSpecialModule($moduleName){
+		$composerAutoloader = ComposerAutoloader::getComposerAutoloader();
+		if(!$composerAutoloader)
+		    throw new \RuntimeException('At '.__METHOD__.' : Composer\Autoload not load!');
+	    if(isset(static::$modulePathMap[$moduleName]))
+	        $composerAutoloader->set($moduleName, static::$modulePathMap[$moduleName]);
 	}
 }

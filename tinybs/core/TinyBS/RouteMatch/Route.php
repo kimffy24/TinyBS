@@ -6,10 +6,12 @@ use TinyBS\BootStrap\ComposerAutoloader;
 use TinyBS\SimpleMvc\BaseController;
 
 class Route {
-	static function loadModuleRoute(BootStrap $core){
-		$composerAutoloader = ComposerAutoloader::getComposerAutoloader();
-		if(!$composerAutoloader)
-		    throw new \RuntimeException('At '.__METHOD__.' : Composer\Autoload not load!');
+    static private $matchController;
+    //static private $matchModule;
+	static public function loadModuleRoute(BootStrap $core){
+		//$composerAutoloader = ComposerAutoloader::getComposerAutoloader();
+		//if(!$composerAutoloader)
+		//    throw new \RuntimeException('At '.__METHOD__.' : Composer\Autoload not load!');
 		$route = $core->getServiceManager()->get('route');
 		$routeMatch = $route->match($core->getServiceManager()->get('Request'));
 		if(!$routeMatch)
@@ -23,23 +25,28 @@ class Route {
             $routeMatchParams['controller']
         ;
         $matchNamespace = substr($targetController, 0, strpos($targetController, '\\'));
-		$composerAutoloader->set($matchNamespace,MODULELOCATION);
+		//$composerAutoloader->set($matchNamespace,MODULELOCATION);
+        BootStrap::loadSpecialModule($matchNamespace);
 		if(class_exists($targetController)){
 		    $aimController = new $targetController();
 		    if(($aimController instanceof BaseController) or is_callable($aimController, 'setServiceLocator'))
 		        $aimController->setServiceLocator($core->getServiceManager());
             $core->getServiceManager()->setService($targetController, $aimController);
+            static::$matchController = $aimController;
 		} else 
 		    throw new \RuntimeException('At '.__METHOD__.' : There match module doesn\'t exist!');
 		return ;
 	}
 	static public function dispatch(BootStrap $core){
 	    $matchMatchParamArray = $core->getServiceManager()->get('RouteMatch')->getParams();
-	    $matchController = (isset($matchMatchParamArray['__NAMESPACE__']))?
-	       $matchMatchParamArray['__NAMESPACE__'].'\\'.$matchMatchParamArray['controller']:
-	       $matchMatchParamArray['controller'];
+	    //$matchController = (isset($matchMatchParamArray['__NAMESPACE__']))?
+	    //   $matchMatchParamArray['__NAMESPACE__'].'\\'.$matchMatchParamArray['controller']:
+	    //   $matchMatchParamArray['controller'];
 	    $matchAction = $matchMatchParamArray['action'].'Action';
-	    $bootstrapResult = call_user_func_array(array($core->getServiceManager()->get($matchController), $matchAction), array());
+	    $bootstrapResult = call_user_func_array(
+	        array(static::$matchController, $matchAction),
+	        array()
+	    );
 	    return $bootstrapResult;
 	}
 }
