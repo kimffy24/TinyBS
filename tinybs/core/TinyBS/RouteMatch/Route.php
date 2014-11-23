@@ -2,8 +2,7 @@
 namespace TinyBS\RouteMatch;
 
 use TinyBS\BootStrap\BootStrap;
-use TinyBS\BootStrap\ComposerAutoloader;
-use TinyBS\SimpleMvc\BaseController;
+use TinyBS\SimpleMvc\Controller\BaseController;
 
 class Route {
     static private $matchController;

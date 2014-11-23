@@ -5,6 +5,7 @@ namespace TinyBS\BootStrap;
 use Zend\ServiceManager\ServiceManager;
 use Zend\Stdlib\ArrayUtils;
 use TinyBS\RouteMatch\Route;
+use TinyBS\SimpleMvc\View\TinyBsRender;
 
 define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
 define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
@@ -82,10 +83,7 @@ class BootStrap {
 		$core->getServiceManager()->setService('config', $moduleConfigs);
 		ServiceManagerUtils::configServiceManager($core->getServiceManager());
     }
-	static public function render(self $core, $bootstrapResult){
-	    var_dump($bootstrapResult);
-	    return $bootstrapResult;
-	}
+
 	/**
 	 * Framework running.
 	 * 
@@ -95,7 +93,7 @@ class BootStrap {
 		$core = static::initialize();
 		static::loadUserConfig($core);
 		Route::loadModuleRoute($core);
-		return static::render($core, Route::dispatch($core));
+		return TinyBsRender::render(Route::dispatch($core));
 	}
 	
 	/**

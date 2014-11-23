@@ -1,5 +1,5 @@
 <?php
-namespace TinyBS\SimpleMvc;
+namespace TinyBS\SimpleMVC\Controller;
 
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;

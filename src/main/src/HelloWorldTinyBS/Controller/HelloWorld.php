@@ -2,7 +2,7 @@
 
 namespace HelloWorldTinyBS\Controller;
 
-use TinyBS\SimpleMvc\BaseController;
+use TinyBS\SimpleMvc\Controller\BaseController;
 
 class HelloWorld extends BaseController
 {
