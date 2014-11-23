@@ -41,7 +41,9 @@ config/config(\*).php下的配置文件和src/main/conf/\*/module.config.php的�
     3. config.{psr0,psr4,classmap}.php 则用来配置composer的加载行为的，
     可以看看composer autoloader怎么玩（不加載src/main/conf下的這幾個文件）
     
-    4. src/main/conf/*/config.php这里本是放模块的配置文件的，config/config.module.php中指定的模块全部都会被加载，其内容能在ServiceManager中能获取。(粗糙的设计，待改进)
+    4. src/main/conf/*/module.config.php这里本是放模块的配置文件的，
+    config/config.lib.module.php中指定的模块全部都会被加载，其内容能在ComposerAutoloader中能获取。(粗糙的设计，待改进)
+    
 
 TODO
 ------------
@@ -51,3 +53,12 @@ TODO
     2. ServiceManager在ZendFramework2 Skeleton中放置了多延迟加载的类，我只留下了3个，放在tinybs/config/config.servicemanager.factory.php,这3个是用于做RouteMatch用的。其他的都改为按需加载。没测试有什么问题。
     
     3. 改天把官网上的Ablum模块拿下来玩玩
+    
+Compare
+------------
+
+    1. 原來的module.config.php是用來給zf2框架加載的提供配置的，TinyBs只適用service_manager和route這兩項配置
+    
+    2. 不再使用Module.php，原來有關的ServiceManager的配置可能要移動到module.config.php中去
+    
+    3. 沒做模板渲染，不適用有模板的Module
