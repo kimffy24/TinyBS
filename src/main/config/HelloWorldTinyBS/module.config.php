@@ -1,10 +1,18 @@
 <?php
 return array (
-		'service_manager' => array (
-				'factories' => array (
-						'FirstLibrary' => function ($sm) {
-						    return new Kklib\FirstLibrary();
-						} 
+		'router' => array (
+				'routes' => array (
+						'helloworld' => array (
+								'type' => 'Segment',
+								'options' => array (
+										'route' => '/helloworld[/]',
+										'defaults' => array (
+												'__NAMESPACE__' => 'HelloWorldTinyBS\Controller',
+												'controller' => 'HelloWorld',
+												'action' => 'helloWorld' 
+										) 
+								),
+						) 
 				) 
-		),
+		) 
 );
