@@ -3,7 +3,6 @@
 namespace TinyBSTest;
 
 use TinyBS\BootStrap\BootStrap;
-use TinyBS\BootStrap\ComposerAutoloader;
 use RuntimeException;
 use TinyBS;
 
