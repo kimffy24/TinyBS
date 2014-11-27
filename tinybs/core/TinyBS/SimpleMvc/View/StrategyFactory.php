@@ -3,7 +3,7 @@ namespace TinyBS\SimpleMvc\View;
 
 class StrategyFactory
 {
-    const JSON_DEBUG_STRATEGY = 'JsonDebugStrategy';
+    const JSON_DEBUG_STRATEGY = 'VarDumpStrategy';
     const JSON_STRATEGY = 'JsonStrategy';
     const STRING_STRATEGY = 'StringStrategy';
     /**

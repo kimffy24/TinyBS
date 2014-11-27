@@ -1,7 +1,7 @@
 <?php
 namespace TinyBS\SimpleMvc\View\Strategy;
 
-class JsonDebugStrategy implements ViewStrategyInterface
+class VarDumpStrategy implements ViewStrategyInterface
 {
     public function render($resultArray){
         //header('Content-type: application/json');

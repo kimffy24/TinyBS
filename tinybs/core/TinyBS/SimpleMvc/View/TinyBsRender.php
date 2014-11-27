@@ -5,7 +5,7 @@ use Zend\View\Model\JsonModel;
 
 class TinyBsRender
 {
-    const DEFAULT_VIEW_STRATEGY = 'JsonDebugStrategy';
+    const DEFAULT_VIEW_STRATEGY = 'VarDumpStrategy';
     static public function render($bootstrapResult){
         $resultArray = null;
         if(($bootstrapResult instanceof JsonModel) or  is_callable(array($bootstrapResult, 'getVariables')))
