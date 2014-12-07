@@ -17,7 +17,7 @@ return array(
     ),
     'tbs_view' => array(
         'actor' => function($renderResult){
-            return \HelloWorldTinyBS\Service\TbsRender\Render::getInstance()->render($renderResult);
+            return (new \HelloWorldTinyBS\Service\TbsRender\Render())->render($renderResult);
         }
     )
 );
