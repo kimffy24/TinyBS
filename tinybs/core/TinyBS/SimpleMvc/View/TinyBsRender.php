@@ -12,7 +12,9 @@ class TinyBsRender
     	static::renderPrepare($core);
         $resultArray = null;
         return is_callable(static::$viewFunction)?
-            call_user_func_array(static::$viewFunction, $bootstrapResult):
+            call_user_func_array(
+                static::$viewFunction,
+                array($bootstrapResult)):
             call_user_func_array(
                 array((StrategyFactory::getInstance(static::$viewStrategy)), 'render'),
                 array($bootstrapResult));

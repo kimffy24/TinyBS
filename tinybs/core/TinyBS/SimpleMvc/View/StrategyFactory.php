@@ -5,9 +5,6 @@ use Exception;
 
 class StrategyFactory
 {
-    const JSON_DEBUG_STRATEGY = 'VarDumpStrategy';
-    const JSON_STRATEGY = 'JsonStrategy';
-    const STRING_STRATEGY = 'StringStrategy';
     /**
      * get an instance.
      * @param string $name
