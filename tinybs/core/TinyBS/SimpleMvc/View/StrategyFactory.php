@@ -1,6 +1,8 @@
 <?php
 namespace TinyBS\SimpleMvc\View;
 
+use Exception;
+
 class StrategyFactory
 {
     const JSON_DEBUG_STRATEGY = 'VarDumpStrategy';
@@ -11,15 +13,10 @@ class StrategyFactory
      * @param string $name
      * @return \TinyBS\SimpleMvc\View\Strategy\ViewStrategyInterface 
      */
-    public function getInstance($name){
-        switch($name){
-            case self::JSON_DEBUG_STRATEGY:
-            case self::JSON_STRATEGY:
-            case self::STRING_STRATEGY:
-                $targetClassName = __NAMESPACE__.'\\Strategy\\'.$name;
-            default:
-                $targetClassName = __NAMESPACE__.'\\Strategy\\'.self::JSON_DEBUG_STRATEGY;
-        }
-        return new $targetClassName();
+    static public function getInstance($name){
+        $targetStrategy = __NAMESPACE__.'\\Strategy\\'.$name;
+        if(class_exists($targetStrategy))
+            return new $targetStrategy();
+        throw new Exception(__METHOD__.'() class '.$targetStrategy.' not found');
     }
 }

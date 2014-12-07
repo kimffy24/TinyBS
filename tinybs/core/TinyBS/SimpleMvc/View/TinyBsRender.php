@@ -1,21 +1,32 @@
 <?php
 namespace TinyBS\SimpleMvc\View;
 
-use Zend\View\Model\JsonModel;
 use TinyBS\BootStrap\BootStrap;
 
 class TinyBsRender
 {
     const DEFAULT_VIEW_STRATEGY = 'VarDumpStrategy';
+    static private $viewFunction = null;
+    static private $viewStrategy = self::DEFAULT_VIEW_STRATEGY;
     static public function render(BootStrap $core, $bootstrapResult){
     	static::renderPrepare($core);
         $resultArray = null;
-        if(($bootstrapResult instanceof JsonModel) or  is_callable(array($bootstrapResult, 'getVariables')))
-            $resultArray = call_user_func_array(array($bootstrapResult, 'getVariables'), array());
-        elseif(is_array($bootstrapResult)) $resultArray = $bootstrapResult;
-        return (new StrategyFactory())->getInstance(self::DEFAULT_VIEW_STRATEGY)->render($resultArray);
+        return is_callable(static::$viewFunction)?
+            call_user_func_array(static::$viewFunction, $bootstrapResult):
+            call_user_func_array(
+                array((StrategyFactory::getInstance(static::$viewStrategy)), 'render'),
+                array($bootstrapResult));
+        ;
 	}
-	static public function renderPrepare($core){
-		
+	static public function renderPrepare(BootStrap $core){
+		$route = $core->getServiceManager()->get('TinyBS\RouteMatch\Route');
+		$matchNamespace = $route->getMatchNamespace();
+		$tbsConfig = $core->getServiceManager()->get('config');
+		if(isset($tbsConfig['tbs_view'])){
+		    if(isset($tbsConfig['tbs_view']['strategy']))
+		        static::$viewStrategy = $tbsConfig['tbs_view']['strategy'];
+		    if(isset($tbsConfig['tbs_view']['actor']) and is_callable($tbsConfig['tbs_view']['actor']))
+		        static::$viewFunction = $tbsConfig['tbs_view']['actor'];
+		}
 	}
 }
