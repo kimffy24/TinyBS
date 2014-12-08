@@ -1,10 +1,10 @@
 <?php
-namespace TinyBS\SimpleMVC\Controller;
+namespace TinyBS\SimpleMvc\Controller;
 
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-abstract class BaseController implements ServiceLocatorAwareInterface
+abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
 {
     private $serviceLocator = null;
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator){

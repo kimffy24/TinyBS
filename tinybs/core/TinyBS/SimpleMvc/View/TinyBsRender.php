@@ -24,7 +24,8 @@ class TinyBsRender
 		$route = $core->getServiceManager()->get('TinyBS\RouteMatch\Route');
 		$matchNamespace = $route->getMatchNamespace();
 		$tbsConfig = $core->getServiceManager()->get('config');
-		if(isset($tbsConfig['tbs_view'])){
+		if(isset($tbsConfig[$matchNamespace])) return ;
+		if(isset($tbsConfig[$matchNamespace]['tbs_view'])){
 		    if(isset($tbsConfig['tbs_view']['strategy']))
 		        static::$viewStrategy = $tbsConfig['tbs_view']['strategy'];
 		    if(isset($tbsConfig['tbs_view']['actor']) and is_callable($tbsConfig['tbs_view']['actor']))

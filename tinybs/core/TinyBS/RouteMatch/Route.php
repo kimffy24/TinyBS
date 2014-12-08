@@ -2,7 +2,7 @@
 namespace TinyBS\RouteMatch;
 
 use TinyBS\BootStrap\BootStrap;
-use TinyBS\SimpleMvc\Controller\BaseController;
+use TinyBS\SimpleMvc\Controller\TinyBsBaseController;
 
 /**
  * TinyBS Route Match control class。
@@ -43,11 +43,11 @@ class Route {
             $routeMatchParams['__NAMESPACE__'].'\\'.$routeMatchParams['controller']:
             $routeMatchParams['controller']
         ;
-        $matchNamespace = substr($targetController, 0, strpos($targetController, '\\'));
-        BootStrap::loadSpecialModule($matchNamespace);
+        $this->matchNamespace = substr($targetController, 0, strpos($targetController, '\\'));
+        BootStrap::loadSpecialModule($this->matchNamespace);
 		if(class_exists($targetController)){
 		    $aimController = new $targetController();
-		    if(($aimController instanceof BaseController) or is_callable($aimController, 'setServiceLocator'))
+		    if(($aimController instanceof TinyBsBaseController) or is_callable($aimController, 'setServiceLocator'))
 		        $aimController->setServiceLocator($core->getServiceManager());
             $core->getServiceManager()->setService($targetController, $aimController);
             $this->matchController = $aimController;

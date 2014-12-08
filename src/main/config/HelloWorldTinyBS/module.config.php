@@ -16,8 +16,10 @@ return array(
         )
     ),
     'tbs_view' => array(
-        'actor' => function($renderResult){
-            return (new \HelloWorldTinyBS\Service\TbsRender\Render())->render($renderResult);
-        }
+    	'HelloWorldTinyBS' => array (
+	        'actor' => function($renderResult){
+	            return (new \HelloWorldTinyBS\Service\TbsRender\Render())->render($renderResult);
+	        }
+    	)
     )
 );

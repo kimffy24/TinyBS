@@ -2,9 +2,9 @@
 
 namespace HelloWorldTinyBS\Controller;
 
-use TinyBS\SimpleMvc\Controller\BaseController;
+use TinyBS\SimpleMvc\Controller\TinyBsBaseController;
 
-class HelloWorld extends BaseController
+class HelloWorld extends TinyBsBaseController
 {
 	public function helloWorldAction(){
 	    $firstLib = $this->getFirstLib();
