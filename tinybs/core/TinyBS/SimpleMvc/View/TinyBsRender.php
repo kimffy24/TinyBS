@@ -24,12 +24,15 @@ class TinyBsRender
 		$route = $core->getServiceManager()->get('TinyBS\RouteMatch\Route');
 		$matchNamespace = $route->getMatchNamespace();
 		$tbsConfig = $core->getServiceManager()->get('config');
-		if(isset($tbsConfig[$matchNamespace])) return ;
-		if(isset($tbsConfig[$matchNamespace]['tbs_view'])){
-		    if(isset($tbsConfig['tbs_view']['strategy']))
-		        static::$viewStrategy = $tbsConfig['tbs_view']['strategy'];
-		    if(isset($tbsConfig['tbs_view']['actor']) and is_callable($tbsConfig['tbs_view']['actor']))
-		        static::$viewFunction = $tbsConfig['tbs_view']['actor'];
+		if(!isset($tbsConfig['tbs_view'])) return ;
+		if(isset($tbsConfig['tbs_view'][$matchNamespace])){
+		    if(isset($tbsConfig['tbs_view'][$matchNamespace]['strategy']))
+		        static::$viewStrategy = $tbsConfig['tbs_view'][$matchNamespace]['strategy'];
+		    if(isset(
+		        $tbsConfig['tbs_view'][$matchNamespace]['actor'])
+		        && 
+		        is_callable($tbsConfig['tbs_view'][$matchNamespace]['actor']))
+		        static::$viewFunction = $tbsConfig['tbs_view'][$matchNamespace]['actor'];
 		}
 	}
 }
