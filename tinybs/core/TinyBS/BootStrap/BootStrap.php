@@ -124,11 +124,11 @@ class BootStrap {
 	        foreach ($libModules as $v) {
 	            if(is_string($v)){
 	                $composerAutoloader->set ( $v, MODULELOCATION );
-	            } elseif(is_array($libModules) and count($libModules)>1) {
+	            } elseif(is_array($v) and count($v)>0) {
 	                // >>>specified module name
-	                $moduleName = isset($libModules['module_name'])?$libModules['module_name']:$libModules[0];
+	                $moduleName = isset($v['module_name'])?$v['module_name']:$v[0];
 	                // >>>specified the module path
-	                $modulePath = isset($libModules['module_path'])?$libModules['module_path']:$libModules[1];
+	                $modulePath = isset($v['module_path'])?$v['module_path']:$v[1];
 	                $composerAutoloader->set ( $moduleName, $modulePath.DS.'src' );
 	            }
 	        }
