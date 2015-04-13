@@ -58,12 +58,10 @@ class Route {
 	public function dispatch(BootStrap $core){
 	    $core->getServiceManager()->setService(__CLASS__, $this);
 	    $matchMatchParamArray = $core->getServiceManager()->get('RouteMatch')->getParams();
-	    $matchAction = $matchMatchParamArray['action'].'Action';
-	    $bootstrapResult = call_user_func_array(
-	        array($this->matchController, $matchAction),
+	    return call_user_func_array(
+	        array($this->matchController, $matchMatchParamArray['action'].'Action'),
 	        array()
 	    );
-	    return $bootstrapResult;
 	}
 	
 }
