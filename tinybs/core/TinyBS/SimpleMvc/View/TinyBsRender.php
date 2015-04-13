@@ -9,6 +9,7 @@ class TinyBsRender
     static private $viewFunction = null;
     static private $viewStrategy = self::DEFAULT_VIEW_STRATEGY;
     static public function render(BootStrap $core, $bootstrapResult){
+        if(!$bootstrapResult) return;
     	static::renderPrepare($core);
         return is_callable(static::$viewFunction)?
             call_user_func_array(
