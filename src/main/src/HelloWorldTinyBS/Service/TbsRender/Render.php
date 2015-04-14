@@ -9,7 +9,7 @@ namespace HelloWorldTinyBS\Service\TbsRender;
 class Render
 {
     public function render($dispathResult){
-    	echo 'testSelfRender';
+        echo 'use '.__METHOD__.' to render page.';
         var_dump($dispathResult);
         return;
     }

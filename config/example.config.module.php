@@ -25,5 +25,6 @@
  */
 return array(
 	'HelloWorldTinyBS',
+	'HelloSmarty',
     //array('Order', '/server/project/Order/Order')
 );
