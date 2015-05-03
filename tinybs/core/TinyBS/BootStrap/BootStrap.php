@@ -92,9 +92,9 @@ class BootStrap {
 	static public function run(){
 		$core = static::initialize();
 		static::loadUserConfig($core);
-		$route = new Route();
-		$route->loadModuleRoute($core);
-		return TinyBsRender::render($core, $route->dispatch($core));
+		$route = new Route($core);
+		$route->loadModuleRoute();
+		return TinyBsRender::render($core, $route->dispatch());
 	}
 	
 	/**

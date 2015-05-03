@@ -12,8 +12,8 @@ class HelloWorld extends TinyBsBaseController
 		    'msg' => "HelloWorldTinyBS: Bootstrap is Ok.",
 		    'getTrue()' => $firstLib->getTrue(),
 		    'getHelloWorld()' => $firstLib->getHelloWorld(),
-		    'date'=> date('Y-m-d'),
-		    'now'=> time()
+		    'now'=> date('Y-m-d h:M:s'),
+		    'nowTimestamp'=> time()
 		);
 	}
 }

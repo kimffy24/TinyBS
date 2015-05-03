@@ -28,6 +28,7 @@ return array(
     	'HelloSmarty' => array (
 	        'actor' => function($rr){
 	            //we use smarty to render view page!
+	            echo memory_get_usage().'Bytes';
 	            return;
 	        }
     	)
