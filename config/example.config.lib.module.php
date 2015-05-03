@@ -5,5 +5,5 @@
  */
 return array(
 	'DemoLib',
-	array('SelfLibrary', '/server/project/phpSelfLibrary/phpSelfLibrary')
+	//array('SelfLibrary', '/server/project/phpSelfLibrary/phpSelfLibrary')
 );
