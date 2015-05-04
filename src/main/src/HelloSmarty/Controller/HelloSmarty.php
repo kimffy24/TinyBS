@@ -11,6 +11,7 @@ class HelloSmarty extends TinyBsBaseController
 
 	    $smarty->assign('title', __CLASS__);
 	    $smarty->assign('name', 'Jiefzz');
+	    $smarty->assign('now', time());
 	    $smarty->display('test.tpl');
 	    return 1;
 	}
