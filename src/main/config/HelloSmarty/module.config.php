@@ -5,7 +5,9 @@ return array(
     'service_manager' => array(
         'factories' => array(
             'HelloSmarty\Components\Smarty' => function ($sm){
-                return new Smarty4psr0();
+            	$smarty = new Smarty4psr0();
+            	$smarty->assign('url', $sm->get('TinyBS\View\Helper\Url'));
+                return $smarty;
             }
         )
     ),

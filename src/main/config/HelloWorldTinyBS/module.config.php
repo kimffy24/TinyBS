@@ -5,7 +5,7 @@ return array(
             'helloworld' => array(
                 'type' => 'Segment',
                 'options' => array(
-                    'route' => '/helloworld[/]',
+                    'route' => '/helloworld[/:action]',
                     'defaults' => array(
                         '__NAMESPACE__' => 'HelloWorldTinyBS\Controller',
                         'controller' => 'HelloWorld',

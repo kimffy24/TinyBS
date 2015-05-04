@@ -13,7 +13,6 @@ define('MODULECONFIG', TINYBSROOT.DS.'src'.DS.'main'.DS.'config');
 define('MODULELOCATION', TINYBSROOT.DS.'src'.DS.'main'.DS.'src');
 
 class BootStrap {
-	private $serviceManager;
 	public function __construct(ServiceManager $sm) {
 		$this->serviceManager = $sm;
 	}
@@ -31,6 +30,8 @@ class BootStrap {
 	const CLASSMAP_CONFIG_NAME = 'config.classmap.php';
 	const LIB_MODULE_CONFIG_NAME = 'config.lib.module.php';
 	const MODULE_CONFIG_NAME = 'config.module.php';
+
+	private $serviceManager;
 	
 	static private $preLoadConfigFiles = array (
 			self::PSR_0_CONFIG_NAME,

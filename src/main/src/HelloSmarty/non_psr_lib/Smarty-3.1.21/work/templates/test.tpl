@@ -41,6 +41,7 @@
 {* 注释不能嵌套 *}
 
 <h1>第一次使用smarty哦</h1>
-
+{assign var="link_hellosmarty" value=$url->__invoke('hellosmarty')}
+{$link_hellosmarty}
 </body>
 </html>

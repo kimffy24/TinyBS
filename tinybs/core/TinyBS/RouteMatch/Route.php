@@ -74,7 +74,7 @@ class Route {
 		} else 
 		    throw new \RuntimeException('At '.__METHOD__.' : There match module doesn\'t exist!');
 		
-		return ;
+		return $this;
 	}
 	
 	/**
