@@ -6,7 +6,6 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
 {
-    private $serviceLocator = null;
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator){
         $this->serviceLocator = $serviceLocator;
         return $this;
@@ -14,4 +13,12 @@ abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
     public function getServiceLocator(){
         return $this->serviceLocator;
     }
+    
+    protected function getViewHeplerUrl(){
+    	if(!$this->viewHelperUrl)
+    		$this->viewHelperUrl = $this->getServiceLocator()->get('TinyBS\View\Helper\Url');
+    	return $this->viewHelperUrl;
+    }
+    private $serviceLocator = null;
+    private $viewHelperUrl = null;
 }

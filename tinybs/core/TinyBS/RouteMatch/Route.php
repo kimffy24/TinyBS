@@ -13,17 +13,8 @@ use Zend\View\Helper\Url;
  *
  */
 class Route {
-	private $core;
-    private $matchController;
-    private $matchNamespace;
-    
-    /**
-     * 强依赖于一个Tbs核心对象
-     */
     public function __construct(BootStrap $core){
     	$this->core = $core;
-		// 往核心框架中注册自己，以便能被核心框架中的其他对象能够找到自己。
-		// @todo 暂时没考虑出现重复注册的问题
 		$core->getServiceManager()->setService(__CLASS__, $this);
     }
     /**
@@ -42,6 +33,13 @@ class Route {
     public function getMatchNamespace()
     {
         return $this->matchNamespace;
+    }
+	/**
+	 * return the mathc Action name
+     * @return the $matchNamespace
+     */
+    public function getMatchAction(){
+    	return $this->matchAction;
     }
 
     /**
@@ -70,7 +68,14 @@ class Route {
 		    if(($aimController instanceof TinyBsBaseController) or is_callable($aimController, 'setServiceLocator'))
 		        $aimController->setServiceLocator($core->getServiceManager());
             $core->getServiceManager()->setService($targetController, $aimController);
-            $this->matchController = $aimController;
+            $this->matchController = $targetController;
+            $this->matchControllerObject = $aimController;
+            
+            if(is_callable(array(
+            				$this->matchControllerObject,
+            				$routeMatchParams['action'].'Action'
+            		)))
+            	$this->matchAction = $routeMatchParams['action'];
 		} else 
 		    throw new \RuntimeException('At '.__METHOD__.' : There match module doesn\'t exist!');
 		
@@ -88,9 +93,13 @@ class Route {
 		$core = $this->getBoostrapObject();
 	    $matchMatchParamArray = $core->getServiceManager()->get('RouteMatch')->getParams();
 	    return call_user_func_array(
-	        array($this->matchController, $matchMatchParamArray['action'].'Action'),
+	        array($this->matchControllerObject, $matchMatchParamArray['action'].'Action'),
 	        array()
 	    );
+	}
+	
+	public function getViewHelperUrl(){
+		return $this->viewHelperUrl;
 	}
 	
 	private function getBoostrapObject(){
@@ -106,6 +115,15 @@ class Route {
 		$viewHelperUrl = new Url();
 		$viewHelperUrl->setRouter($route);
 		$viewHelperUrl->setRouteMatch($routeMatch);
+		$this->viewHelperUrl = $viewHelperUrl;
 		$this->getBoostrapObject()->getServiceManager()->setService('TinyBS\View\Helper\Url', $viewHelperUrl);
 	}
+	private $core;
+    private $matchController;
+    private $matchNamespace;
+    private $matchAction;
+    
+    private $matchControllerObject;
+    
+    private $viewHelperUrl;
 }
