@@ -44,7 +44,7 @@
 {$name}<br />
 {$now}<br />
 {assign var=foo value=[ $url, '__invoke' ]}
-{assign var=bar value=[ 'helloworld', [ 'action'=>'money' ] ]}
+{assign var=bar value=[ 'map360.sys', [ 'action'=>'secondPage' ] ]}
 {call_user_func_array($foo, $bar)}
 </body>
 </html>
