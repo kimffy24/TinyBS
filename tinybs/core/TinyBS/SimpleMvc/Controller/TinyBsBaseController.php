@@ -11,6 +11,10 @@ abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
         $this->serviceLocator = $serviceLocator;
         return $this;
     }
+    
+    /**
+     * @return \Zend\ServiceManager\ServiceLocatorInterface
+     */
     public function getServiceLocator(){
         return $this->serviceLocator;
     }

@@ -17,6 +17,9 @@ abstract class AbstractModuleInitialization
 			$this->serviceManager = $sl;
 		return $this;
 	}
+	public function getServiceLocator(){
+		return $this->getServiceManager();
+	}
 	
 	protected function getServiceManager(){
 		if(!$this->serviceManager)

@@ -108,7 +108,7 @@ class Route {
 	 */
 	private function preDispatch(){
 		$serviceManager = $this->getBoostrapObject()->getServiceManager();
-		$moduleInitializationClass = $this->getMatchNamespace().'ModuleInitialization';
+		$moduleInitializationClass = $this->getMatchNamespace().'\\ModuleInitialization';
 		if(class_exists($moduleInitializationClass)){
 			//模块初始化对象时默认传递第一个参数为ServiceManager
 			$moduleInitializationObject = new $moduleInitializationClass($serviceManager);
