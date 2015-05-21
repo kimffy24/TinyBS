@@ -2,9 +2,10 @@
 namespace TinyBS\RouteMatch;
 
 use TinyBS\BootStrap\BootStrap;
-use TinyBS\SimpleMvc\Controller\TinyBsBaseController;
+use TinyBS\SimpleMvc\Utils\ModuleInitializationInterface;
 
-use Zend\View\Helper\Url;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use TinyBS\SimpleMvc\Controller\Utils\PreDispatchInterface;
 
 /**
  * TinyBS Route Match control class。
@@ -44,6 +45,8 @@ class Route {
 
     /**
      * found the match module(namespace) and match controller
+     * and construct the target Controller object 
+     * and try to inject the ServiceManager into it
      * @param BootStrap $core
      * @throws \RuntimeException
      */
@@ -65,7 +68,7 @@ class Route {
         BootStrap::loadSpecialModule($this->matchNamespace);
 		if(class_exists($targetController)){
 		    $targetControllerObject = new $targetController();
-		    if(($targetControllerObject instanceof TinyBsBaseController) or is_callable($targetControllerObject, 'setServiceLocator'))
+		    if(($targetControllerObject instanceof ServiceLocatorAwareInterface) or is_callable($targetControllerObject, 'setServiceLocator'))
 		        $targetControllerObject->setServiceLocator($core->getServiceManager());
             $core->getServiceManager()->setService($targetController, $targetControllerObject);
             $this->matchController = $targetController;
@@ -88,6 +91,7 @@ class Route {
 	 * @return mixed
 	 */
 	public function dispatch(){
+		$this->preDispatch();
 		//$this -> configureViewHelperUrl();
 		
 		//$core = $this->getBoostrapObject();
@@ -96,6 +100,44 @@ class Route {
 	        array($this->matchControllerObject, $this->matchAction/*$matchMatchParamArray['action']*/.'Action'),
 	        array()
 	    );
+	}
+	
+	/**
+	 * 调用模块自身的初始化函数（假如存在）
+	 * 调用目标控制器的初始化函数（假如存在）
+	 */
+	private function preDispatch(){
+		$serviceManager = $this->getBoostrapObject()->getServiceManager();
+		$moduleInitializationClass = $this->getMatchNamespace().'ModuleInitialization';
+		if(class_exists($moduleInitializationClass)){
+			//模块初始化对象时默认传递第一个参数为ServiceManager
+			$moduleInitializationObject = new $moduleInitializationClass($serviceManager);
+			
+			//注册到服务管理器中，并设置别名
+			$serviceManager->setService($moduleInitializationClass, $moduleInitializationObject);
+			$serviceManager->setAlias('ModuleInitialization', $moduleInitializationClass);
+			
+			//具备服务定位器释义接口时，调用服务定位器注入函数
+			if($moduleInitializationObject instanceof ServiceLocatorAwareInterface){
+				$moduleInitializationObject->setServiceLocator($serviceManager);
+			}
+			
+			//若果扩展自ModuleInitializationInterface，执行扩展的方法！
+			if($moduleInitializationObject instanceof ModuleInitializationInterface){
+				call_user_func_array(
+					array($moduleInitializationObject,'initModule'),
+					array()
+				);
+			}
+		}
+		
+		//若果目标控制器扩展了PreDispatchInterface，则调用扩展方法
+		if($this->matchControllerObject instanceof PreDispatchInterface){
+			call_user_func_array(
+				array($this->matchControllerObject,'_preDispatch'),
+				array()
+			);
+		}
 	}
 	
 	
@@ -119,5 +161,9 @@ class Route {
     private $matchNamespace;
     private $matchAction;
     
+    /**
+     * there no method to get this object!!
+     * @var \TinyBS\SimpleMvc\Controller\TinyBsBaseController
+     */
     private $matchControllerObject;
 }
