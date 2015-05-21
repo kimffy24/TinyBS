@@ -40,10 +40,13 @@ abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
     protected function redirect($url){
     	if(is_array($url)){
     		$viewHelperUrl = $this->getViewHelperUrl();
-        	header("Location: "+$viewHelperUrl($url));
-    	} else 
-        	header("Location: "+$url);
-        exit;
+    		$url = call_user_func_array(
+        		array($viewHelperUrl, '__invoke'),
+        		$url
+        	);
+    	}
+        header("Location: ".$url);
+        die;
     }
 
     private $serviceLocator = null;
