@@ -12,5 +12,9 @@ namespace TinyBS\SimpleMvc\Utils;
  *
  */
 interface ModuleInitializationInterface {
+	
+	/**
+	 * 在此函数中填写模块初始化内容
+	 */
 	public function initModule();
 }
