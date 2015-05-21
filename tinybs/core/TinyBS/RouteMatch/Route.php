@@ -55,7 +55,7 @@ class Route {
 		    throw new \RuntimeException('At '.__METHOD__.' : There no match modules!');
 		$core->getServiceManager()->setService('RouteMatch', $routeMatch);
 		$routeMatchParams = $routeMatch->getParams();
-		if(!isset($routeMatchParams['__NAMESPACE__']) and !isset($routeMatchParams['controller']))
+		if(/*!isset($routeMatchParams['__NAMESPACE__']) and */!isset($routeMatchParams['controller']))
 		    throw new \RuntimeException('At '.__METHOD__.' : There no controller at match modules!');
 		$targetController = isset($routeMatchParams['__NAMESPACE__'])?
             $routeMatchParams['__NAMESPACE__'].'\\'.$routeMatchParams['controller']:
@@ -64,12 +64,12 @@ class Route {
         $this->matchNamespace = substr($targetController, 0, strpos($targetController, '\\'));
         BootStrap::loadSpecialModule($this->matchNamespace);
 		if(class_exists($targetController)){
-		    $aimController = new $targetController();
-		    if(($aimController instanceof TinyBsBaseController) or is_callable($aimController, 'setServiceLocator'))
-		        $aimController->setServiceLocator($core->getServiceManager());
-            $core->getServiceManager()->setService($targetController, $aimController);
+		    $targetControllerObject = new $targetController();
+		    if(($targetControllerObject instanceof TinyBsBaseController) or is_callable($targetControllerObject, 'setServiceLocator'))
+		        $targetControllerObject->setServiceLocator($core->getServiceManager());
+            $core->getServiceManager()->setService($targetController, $targetControllerObject);
             $this->matchController = $targetController;
-            $this->matchControllerObject = $aimController;
+            $this->matchControllerObject = $targetControllerObject;
             
             if(is_callable(array(
             				$this->matchControllerObject,
@@ -88,35 +88,31 @@ class Route {
 	 * @return mixed
 	 */
 	public function dispatch(){
-		$this -> configureViewHelperUrl();
+		//$this -> configureViewHelperUrl();
 		
-		$core = $this->getBoostrapObject();
-	    $matchMatchParamArray = $core->getServiceManager()->get('RouteMatch')->getParams();
+		//$core = $this->getBoostrapObject();
+	    //$matchMatchParamArray = $core->getServiceManager()->get('RouteMatch')->getParams();
 	    return call_user_func_array(
-	        array($this->matchControllerObject, $matchMatchParamArray['action'].'Action'),
+	        array($this->matchControllerObject, $this->matchAction/*$matchMatchParamArray['action']*/.'Action'),
 	        array()
 	    );
 	}
 	
-	public function getViewHelperUrl(){
-		return $this->viewHelperUrl;
-	}
 	
-	private function getBoostrapObject(){
-		return $this->core;
-	}
-	
-	private function configureViewHelperUrl(){
+	/*private function configureViewHelperUrl(){
 		// since every is ok ,
 		// we regist url view helper
 		//
-		$route = $this->getBoostrapObject()->getServiceManager()->get('route');
-		$routeMatch = $route->match($this->getBoostrapObject()->getServiceManager()->get('Request'));
+		$serviceManager = $this->getBoostrapObject()->getServiceManager();
+		$route = $serviceManager->get('route');
+		$routeMatch = $serviceManager->get('RouteMatch');
 		$viewHelperUrl = new Url();
 		$viewHelperUrl->setRouter($route);
 		$viewHelperUrl->setRouteMatch($routeMatch);
-		$this->viewHelperUrl = $viewHelperUrl;
-		$this->getBoostrapObject()->getServiceManager()->setService('TinyBS\View\Helper\Url', $viewHelperUrl);
+		$serviceManager->setService('TinyBS\View\Helper\Url', $viewHelperUrl);
+	}*/
+	private function getBoostrapObject(){
+		return $this->core;
 	}
 	private $core;
     private $matchController;
@@ -124,6 +120,4 @@ class Route {
     private $matchAction;
     
     private $matchControllerObject;
-    
-    private $viewHelperUrl;
 }

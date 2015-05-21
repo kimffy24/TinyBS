@@ -3,7 +3,7 @@ namespace TinyBS\SimpleMvc\Controller;
 
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
-use Zend\View\Helper\Url;
+use TinyBS\SimpleMvc\Controller\Plugins\ControllerPluginsUrl;
 
 abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
 {
@@ -16,19 +16,32 @@ abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
     }
 
     /**
-     * @return \Zend\View\Helper\Url
+     * 遗留函数
+     * 同TinyBsBaseController::getControllerPluginsUrl()
+     * @return \TinyBS\SimpleMvc\Controller\Plugins\ControllerPluginsUrl
      */
     protected function getViewHelperUrl(){
-    	if(!$this->viewHelperUrl)
-    		$this->viewHelperUrl = $this->getServiceLocator()->get('TinyBS\View\Helper\Url');
-    	return $this->viewHelperUrl;
+    	return $this->getControllerPluginsUrl();
+    }
+    /**
+     * 根据路由配置生成路有链接
+     * @return \TinyBS\SimpleMvc\Controller\Plugins\ControllerPluginsUrl
+     */
+    protected function getControllerPluginsUrl(){
+    	if(!$this->pluginsUrl)
+    		$this->pluginsUrl = new ControllerPluginsUrl($this->getServiceLocator());
+    	return $this->pluginsUrl;
     }
 
     protected function redirect($url){
-        header("Location: "+$url);
+    	if(is_array($url)){
+    		$viewHelperUrl = $this->getViewHelperUrl();
+        	header("Location: "+$viewHelperUrl($url));
+    	} else 
+        	header("Location: "+$url);
         exit;
     }
 
     private $serviceLocator = null;
-    private $viewHelperUrl = null;
+    private $pluginsUrl = null;
 }
