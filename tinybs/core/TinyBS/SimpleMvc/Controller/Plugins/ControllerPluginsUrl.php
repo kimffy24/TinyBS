@@ -12,8 +12,8 @@ class ControllerPluginsUrl extends Url{
 		$routeMatch = $sm->get('RouteMatch');
 		$this->setRouter($route);
 		$this->setRouteMatch($routeMatch);
-		$sm->setService(__CLASS__, $this);
-		$sm->setAlias("ControllerPluginsUrl", __CLASS__);
+		//$sm->setService(__CLASS__, $this);
+		//$sm->setAlias("ControllerPluginsUrl", __CLASS__);
 	}
 	
 	//private $serviceManager;

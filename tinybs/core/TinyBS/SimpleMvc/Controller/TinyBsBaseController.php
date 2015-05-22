@@ -33,7 +33,7 @@ abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
      */
     protected function getControllerPluginsUrl(){
     	if(!$this->pluginsUrl)
-    		$this->pluginsUrl = new ControllerPluginsUrl($this->getServiceLocator());
+    		$this->pluginsUrl = $this->getServiceLocator()->get('ControllerPluginsUrl');
     	return $this->pluginsUrl;
     }
 
