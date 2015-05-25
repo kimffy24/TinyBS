@@ -157,13 +157,13 @@ class Route {
 		return $this->core;
 	}
 	private $core;
-    private $matchController;
-    private $matchNamespace;
-    private $matchAction;
+    private $matchController = null;
+    private $matchNamespace = null;
+    private $matchAction = null;
     
     /**
      * there no method to get this object!!
      * @var \TinyBS\SimpleMvc\Controller\TinyBsBaseController
      */
-    private $matchControllerObject;
+    private $matchControllerObject = null;
 }

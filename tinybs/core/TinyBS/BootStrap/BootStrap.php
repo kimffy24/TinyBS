@@ -24,6 +24,7 @@ class BootStrap {
 	public function getServiceManager() {
 		return $this->serviceManager;
 	}
+    private $serviceManager = null;
 	
 	const PSR_0_CONFIG_NAME = 'config.psr0.php';
 	const PSR_4_CONFIG_NAME = 'config.psr4.php';
@@ -31,7 +32,14 @@ class BootStrap {
 	const LIB_MODULE_CONFIG_NAME = 'config.lib.module.php';
 	const MODULE_CONFIG_NAME = 'config.module.php';
 
-	private $serviceManager;
+
+    /**
+     * @return \TinyBS\BootStrap\BootStrap
+     */
+    static public function getLastRequestBootstrapObject(){
+        return self::$requestBootstrapObject;
+    }
+    static private $requestBootstrapObject = null;
 	
 	static private $preLoadConfigFiles = array (
 			self::PSR_0_CONFIG_NAME,
@@ -46,8 +54,13 @@ class BootStrap {
 		BootStrap::prepareComposerAutoload ();
 		//build an instance of \TinyBS\BootStrap\BootStrap.
 		$core = new BootStrap ( new ServiceManager () );
-		//load setting for inner ServiceManager that inside above instance.
-		ServiceManagerUtils::initServiceManager($core->getServiceManager());
+
+        if(!self::$requestBootstrapObject)
+            self::$requestBootstrapObject = $core;
+
+        //load setting for inner ServiceManager that inside above instance.
+        ServiceManagerUtils::initServiceManager($core->getServiceManager());
+
 		return $core;
 	}
     static public function loadUserConfig(self $core){

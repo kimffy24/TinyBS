@@ -13,3 +13,9 @@ TinyBS\BootStrap\ComposerAutoloader::setComposerAutoloader($composerAutoload);
 
 if (!class_exists('Zend\ServiceManager\ServiceManager'))
 	throw new RuntimeException('Unable to load ZF2. Run `php composer.phar install`.');
+
+set_error_handler(array('\TinyBS\BootStrap\ExtendHandler', 'errorHandler'));
+set_exception_handler(array('\TinyBS\BootStrap\ExtendHandler', 'exceptionHandler'));
+
+
+TinyBS\BootStrap\BootStrap::run();
