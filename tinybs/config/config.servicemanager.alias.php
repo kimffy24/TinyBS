@@ -1,4 +1,7 @@
 <?php
 return array(
-    'ControllerPluginsUrl' => 'TinyBS\SimpleMvc\Controller\Plugins\ControllerPluginsUrl',
+    'Zend\EventManager\EventManagerInterface' => 'EventManager',
+    'Zend\ServiceManager\ServiceLocatorInterface' => 'ServiceManager',
+    'Zend\ServiceManager\ServiceManager' => 'ServiceManager',
+    'TinyBS\SimpleMvc\Controller\Plugins\ControllerPluginsUrl' => 'ControllerPluginsUrl',
 );

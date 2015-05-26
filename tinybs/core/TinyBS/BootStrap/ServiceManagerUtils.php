@@ -15,8 +15,6 @@ class ServiceManagerUtils
 	 */
 	static public function initServiceManager(ServiceManager $serviceManager) {
 	    $serviceManager->setService ( 'ServiceManager', $serviceManager );
-	    $serviceManager->setAlias ( 'Zend\ServiceManager\ServiceLocatorInterface', 'ServiceManager' );
-	    $serviceManager->setAlias ( 'Zend\ServiceManager\ServiceManager', 'ServiceManager' );
 	    $initServiceManager = [
 	        'factory' => 'setFactory',
 	        'alias' => 'setAlias',
