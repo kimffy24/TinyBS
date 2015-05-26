@@ -11,7 +11,7 @@ class Render
     public function render($dispathResult){
         echo 'use '.__METHOD__.' to render page.';
         var_dump($dispathResult);
-        echo '<br />'.memory_get_usage().' Bytes.';
+        echo '<br />This page use '.memory_get_usage().' Bytes.';
         return;
     }
 }
