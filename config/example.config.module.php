@@ -21,6 +21,16 @@
  *  			'module_path' => '/path/to/module/root'
  *  		),
  *      );
+ *
+ *  // please layout like this!
+ *  //    ExampleModule/
+ *  //    ├── config/
+ *  //    │   └── module.config.php
+ *  //    └── src/
+ *  //        └── ExampleModule/
+ *  //            ├── Controller/
+ *  //            └── Model/
+ *  
  *  it contains two module outside tinybs.
  *  Information provided with per array.
  *  The first case is main that first element is the module name and second element is the path of emodule.
@@ -28,15 +38,5 @@
  *  The other case is provides module name with the key module_name and provides module path with the key module_path. 
  */
 return array(
-	'HelloWorldTinyBS',
-	'HelloSmarty',
-    //array('ExampleModule', '/server/project/ExampleModule')
-    // please layout like this!
-    //    ExampleModule/
-    //    ├── config/
-    //    │   └── module.config.php
-    //    └── src/
-    //        └── ExampleModule/
-    //            ├── Controller/
-    //            └── Model/
+	'HelloWorldTinyBS'
 );
