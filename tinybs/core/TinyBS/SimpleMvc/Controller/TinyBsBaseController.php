@@ -3,7 +3,6 @@ namespace TinyBS\SimpleMvc\Controller;
 
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
-use TinyBS\SimpleMvc\Controller\Plugins\ControllerPluginsUrl;
 
 abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
 {

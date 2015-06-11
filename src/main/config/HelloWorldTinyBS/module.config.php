@@ -1,5 +1,6 @@
 <?php
 use Zend\Cache\StorageFactory;
+use HelloWorldTinyBS\Service\TbsRender\Render;
 
 return array (
 		'router' => array (
@@ -20,7 +21,8 @@ return array (
 		'tbs_view' => array (
 				'HelloWorldTinyBS' => array (
 						'actor' => function ($renderResult) {
-							return (new \HelloWorldTinyBS\Service\TbsRender\Render ())->render ( $renderResult );
+							$view = new Render();
+							return $view->render ( $renderResult );
 						} 
 				) 
 		),

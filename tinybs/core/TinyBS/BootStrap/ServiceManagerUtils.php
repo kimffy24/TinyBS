@@ -15,11 +15,11 @@ class ServiceManagerUtils
 	 */
 	static public function initServiceManager(ServiceManager $serviceManager) {
 	    $serviceManager->setService ( 'ServiceManager', $serviceManager );
-	    $initServiceManager = [
+	    $initServiceManager = array(
 	        'factory' => 'setFactory',
 	        'alias' => 'setAlias',
 	        'invokableclass' => 'setInvokableClass',
-	    ];
+	    );
 	    foreach( $initServiceManager as $k => $v ) {
 	        $tmpPath = TINYBSROOT . DS . 'tinybs' . DS . 'config' . DS . 'config.servicemanager.'.$k.'.php';
 	        if (($result = stream_resolve_include_path($tmpPath)) !== false) {
