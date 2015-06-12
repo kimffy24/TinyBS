@@ -2,11 +2,12 @@
 
 namespace TinyBS\BootStrap;
 
-use TinyBS\Utils\RuntimeException;
 use Zend\ServiceManager\ServiceManager;
 use Zend\Stdlib\ArrayUtils;
+
 use TinyBS\RouteMatch\Route;
 use TinyBS\SimpleMvc\View\TinyBsRender;
+use TinyBS\Utils\RuntimeException;
 
 define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
 define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
@@ -18,6 +19,7 @@ class BootStrap {
     const PSR_0_CONFIG_NAME = 'config.psr0.php';
     const PSR_4_CONFIG_NAME = 'config.psr4.php';
     const CLASSMAP_CONFIG_NAME = 'config.classmap.php';
+    
     const LIB_MODULE_CONFIG_NAME = 'config.lib.module.php';
     const MODULE_CONFIG_NAME = 'config.module.php';
 
@@ -36,8 +38,6 @@ class BootStrap {
      * @return \TinyBS\BootStrap\BootStrap
      */
     static public function run(){
-        if(isset($GLOBALS['TinyCore']) || !empty($GLOBALS['TinyCore']))
-            throw new RuntimeException('Context was use already! It is a fatal error!');
         EnvironmentTools::topEnvironmentPrepare();
         $core = static::initialize();
         static::loadUserConfig($core);
@@ -60,21 +60,23 @@ class BootStrap {
     static public function loadSpecialModule($moduleName){
         $composerAutoloader = ComposerAutoloader::getComposerAutoloader();
         if(!$composerAutoloader)
-            throw new \RuntimeException('At '.__METHOD__.' : Composer\Autoload not load!');
+            throw new RuntimeException('At '.__METHOD__.' : Composer\Autoload not load!');
         if(isset(static::$modulePathMap[$moduleName]))
             $composerAutoloader->set($moduleName, static::$modulePathMap[$moduleName]);
     }
 
-
-    // use private access here to promise it all are under the control of this class
-    private function __construct(ServiceManager $sm) {
-        $this->serviceManager = $sm;
+    /**
+     * we do not use public access here
+     * @throws RuntimeException
+     */
+    protected function __construct(ServiceManager $sm){
+    	if(self::$requestBootstrapObject)
+    		throw new RuntimeException("Multi tinybs core object is not allowed!");
+    	self::$requestBootstrapObject = $this;
+    	$this->serviceManager = $sm;
     }
+    
     private $serviceManager = null;
-
-
-
-
 
     static private $requestBootstrapObject = null;
 	
@@ -88,46 +90,31 @@ class BootStrap {
 	
 	static private function initialize() {
 		//load  setting for ComposerAutoloader.
-		BootStrap::prepareComposerAutoload ();
+		self::prepareComposerAutoload ();
 		//build an instance of \TinyBS\BootStrap\BootStrap.
 		$core = new BootStrap ( new ServiceManager () );
-        $GLOBALS['TinyCore'] =  self::$requestBootstrapObject = $core;
 
         //load setting for inner ServiceManager that inside above instance.
         ServiceManagerUtils::initServiceManager($core->getServiceManager());
 		return $core;
 	}
     static private function loadUserConfig(self $core){
-		//load user module
-		BootStrap::prepareUserLibModule();
-		
-		/* $moduleConfigName = ;
-		if ( ( $fileName = stream_resolve_include_path( $moduleConfigName ) ) === false )
-		    throw new \RuntimeException('At '.$moduleConfigName.' : There no config file about modules!');
-		$modules = require $fileName;
-		$moduleConfigs = static::loadModulesConfig($modules);
-		
-		$libModuleConfigName = ;
-		if ( ( $libFileName = stream_resolve_include_path( $libModuleConfigName ) ) === false )
-		    throw new \RuntimeException('At '.$libModuleConfigName.' : There no config file about modules!');
-		$libModules = require $libFileName;
-		$libModuleConfigs = static::loadModulesConfig($libModules, false); */
+		//load user library module into composer autoloader
+		self::prepareUserLibModule();
 		
 		$moduleConfigs = array();
 		$loadConfigStep = array(
-		    array(USER_CONFIG_DIR.DS.BootStrap::$postLoadConfigFiles, true),
-		    array(USER_CONFIG_DIR.DS.BootStrap::LIB_MODULE_CONFIG_NAME, false)
+		    array(USER_CONFIG_DIR.DS.self::MODULE_CONFIG_NAME, true),
+		    array(USER_CONFIG_DIR.DS.self::LIB_MODULE_CONFIG_NAME, false)
 		);
 		foreach ($loadConfigStep as $v) {
 		    $moduleConfigName = $v[0];
     		if ( ( $libFileName = stream_resolve_include_path( $moduleConfigName ) ) === false )
-    		    throw new \RuntimeException('At '.$moduleConfigName.' : There no config file about modules!');
+    		    throw new RuntimeException('file '.$moduleConfigName.' : not exist!');
     		$modules = require $libFileName;
     		$moduleConfigs = ArrayUtils::merge(static::loadModulesConfig($modules, $v[1]), $moduleConfigs);;
 		}
 		
-		//$allConfigs = ArrayUtils::merge($libModuleConfigs, $moduleConfigs);
-		//$core->getServiceManager()->setService('config', $allConfigs);
 		$core->getServiceManager()->setService('config', $moduleConfigs);
 		ServiceManagerUtils::configServiceManager($core->getServiceManager());
     }
@@ -154,7 +141,6 @@ class BootStrap {
 	    if ( ( $fileName = stream_resolve_include_path( $ModuleLibConfigName ) ) !== false ){
 	        $libModules = require $fileName;
 	        $composerAutoloader = ComposerAutoloader::getComposerAutoloader ();
-	        //static::loadModulesConfig($libModules, false);
 	        foreach ($libModules as $v) {
 	            if(is_string($v)){
 	                $composerAutoloader->set ( $v, MODULELOCATION );
@@ -166,9 +152,7 @@ class BootStrap {
 	                $composerAutoloader->set ( $moduleName, $modulePath.DS.'src' );
 	            }
 	        }
-	        //return $libModules;
 	    }
-	    //return array();
 	}
 	
 	/**
@@ -181,6 +165,7 @@ class BootStrap {
 	static private function loadModulesConfig($modules, $strict = true){
 		$moduleConfig = array();
 		foreach($modules as $userModule){
+			$moduleConfigFile = '';
 		    if(is_string($userModule)){
     			$tempFileName = MODULECONFIG.DS.$userModule.DS.'module.config.php';
     			if( ( $moduleConfigFile = stream_resolve_include_path( $tempFileName ) ) === false )
@@ -189,30 +174,28 @@ class BootStrap {
     			    else continue;
     			// set the path map
     			static::$modulePathMap[$userModule] = MODULELOCATION;
-    			$moduleDetails = require $moduleConfigFile;
-    			$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
 		    } elseif(is_array($userModule) and count($userModule)>1) {
 		        // >>>specified module name
 		        $moduleName = isset($userModule['module_name'])?$userModule['module_name']:$userModule[0];
 		        // >>>specified the module path
 		        $modulePath = isset($userModule['module_path'])?$userModule['module_path']:$userModule[1];
-		        // >>> check if the module config file is exits.
-    			$tempFileName = $modulePath.DS.'config'.DS.'module.config.php';
-		        if(!file_exists($tempFileName))
+				// >>> check if the module config file is exits.
+				$tempFileName = $modulePath . DS . 'config' . DS . 'module.config.php';
+				if (($moduleConfigFile = stream_resolve_include_path( $tempFileName ) ) === false )
     			    if($strict)
-    				    throw new \RuntimeException("There no config file '.$tempFileName.' on loading module ".$moduleName.'. ');
+    				    throw new \RuntimeException("There no config file '.$moduleConfigFile.' on loading module ".$moduleName.' configs.');
     			    else continue;
     			static::$modulePathMap[$moduleName] = $modulePath.DS.'src';
-		        // >>> load the module config file.
-    			$moduleDetails = require $tempFileName;
-    			$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
 		    }
+		    // >>> load the module config file.
+    		$moduleDetails = require $moduleConfigFile;
+    		$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
 		}
 		return $moduleConfig;
 	}
 	
 	/**
-	 * general the path to Absolutely Path
+	 * general the path to Absolutely Path or TINYBSROOT
 	 *
 	 * @param unknown $path        	
 	 * @return unknown
@@ -244,8 +227,8 @@ class BootStrap {
 		$config = ($isSysConfig)?
 			TINY_CONFIG_DIR . DS . $configName:
 			USER_CONFIG_DIR . DS . $configName;
-		if (file_exists ( $config ))
-			$keys = require $config;
+		if( ( $rConfig = stream_resolve_include_path( $config ) ) !== false )
+			$keys = require $rConfig;
 		else
 			return;
 		$composerAutoloader = ComposerAutoloader::getComposerAutoloader ();

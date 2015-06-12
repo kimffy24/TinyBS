@@ -4,8 +4,10 @@ namespace TinyBS\RouteMatch;
 use RuntimeException;
 
 use TinyBS\BootStrap\BootStrap;
+use TinyBS\BootStrap\ServiceManagerUtils;
 use TinyBS\SimpleMvc\Utils\ModuleInitializationInterface;
 use TinyBS\SimpleMvc\Controller\Utils\PreDispatchInterface;
+use TinyBS\SimpleMvc\SpecialServiceManagerConfigInterface;
 
 use Zend\ServiceManager\ServiceManagerAwareInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
@@ -123,21 +125,18 @@ class Route {
 			}
 			
 			//if the moduleInitializationObject implement ModuleInitializationInterface, then invoke method 'initModule'
-			if($moduleInitializationObject instanceof ModuleInitializationInterface){
-				call_user_func_array(
-					array($moduleInitializationObject,'initModule'),
-					array()
-				);
-			}
+			if($moduleInitializationObject instanceof ModuleInitializationInterface)
+				$moduleInitializationObject->initModule();
+			
+			if($moduleInitializationObject instanceof SpecialServiceManagerConfigInterface)
+				ServiceManagerUtils::configServiceManager(
+					$serviceManager,
+					$moduleInitializationObject->getServiceManagerConfigArray());
 		}
 		
 		//if the matchController implement PreDispatchInterface, invoke the method '_preDispatch'
-		if($this->matchControllerObject instanceof PreDispatchInterface){
-			call_user_func_array(
-				array($this->matchControllerObject,'_preDispatch'),
-				array()
-			);
-		}
+		if($this->matchControllerObject instanceof PreDispatchInterface)
+			$this->matchControllerObject->_preDispatch();
 	}
 	
 	/**

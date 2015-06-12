@@ -12,12 +12,6 @@ namespace TinyBS\BootStrap;
 class EnvironmentTools {
 
     static function topEnvironmentPrepare(){
-
-
-        //set error or exception handler to deal it with tbs inner handler!
-        set_error_handler(array('\TinyBS\BootStrap\ExtendHandler', 'errorHandler'));
-        set_exception_handler(array('\TinyBS\BootStrap\ExtendHandler', 'exceptionHandler'));
-
         self::prepareOutputBufferFunction();
     }
 

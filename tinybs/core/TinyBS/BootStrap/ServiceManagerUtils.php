@@ -1,12 +1,11 @@
 <?php
 namespace TinyBS\BootStrap;
 
-use RuntimeException;
+use TinyBS\Utils\RuntimeException;
 use Zend\ServiceManager\ServiceManager;
 
 
-class ServiceManagerUtils
-{
+class ServiceManagerUtils {
 	/**
 	 * load config in TINYBSROOT/tinybs/config/config.servicemanager.{factory,alias,invokableclass}.php
 	 *
@@ -14,7 +13,6 @@ class ServiceManagerUtils
 	 * @author JiefzzLon
 	 */
 	static public function initServiceManager(ServiceManager $serviceManager) {
-	    //$serviceManager->setService ( 'ServiceManager', $serviceManager );
 	    $initServiceManager = array(
 	        'factory' => 'setFactory',
 	        'alias' => 'setAlias',
@@ -26,7 +24,7 @@ class ServiceManagerUtils
 	            $config = require $result;
 	            if(!count($config)) continue;
 	            foreach($config as $key=> $value)
-	                $serviceManager->$v($key, $value);
+	                call_user_func_array(array($serviceManager, $v), array($key, $value));
 	        }
 	    }
 	}
@@ -47,8 +45,7 @@ class ServiceManagerUtils
 	        $args =  array();
 	        switch($k){
 	            case 'abstract_factories':
-	                $method = 'addAbstractFactory';
-	                break;
+	                $method = 'addAbstractFactory';break;
 	            case 'aliases':
 	                $method = 'setAlias';break;
 	            case 'factories':
