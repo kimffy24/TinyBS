@@ -2,6 +2,7 @@
 
 namespace TinyBS\BootStrap;
 
+use TinyBS\Utils\RuntimeException;
 use Zend\ServiceManager\ServiceManager;
 use Zend\Stdlib\ArrayUtils;
 use TinyBS\RouteMatch\Route;
@@ -13,9 +14,13 @@ define('MODULECONFIG', TINYBSROOT.DS.'src'.DS.'main'.DS.'config');
 define('MODULELOCATION', TINYBSROOT.DS.'src'.DS.'main'.DS.'src');
 
 class BootStrap {
-	public function __construct(ServiceManager $sm) {
-		$this->serviceManager = $sm;
-	}
+
+    const PSR_0_CONFIG_NAME = 'config.psr0.php';
+    const PSR_4_CONFIG_NAME = 'config.psr4.php';
+    const CLASSMAP_CONFIG_NAME = 'config.classmap.php';
+    const LIB_MODULE_CONFIG_NAME = 'config.lib.module.php';
+    const MODULE_CONFIG_NAME = 'config.module.php';
+
 	/**
 	 * return default ServiceManager instance
 	 * @return \Zend\ServiceManager\ServiceManager
@@ -24,14 +29,22 @@ class BootStrap {
 	public function getServiceManager() {
 		return $this->serviceManager;
 	}
-    private $serviceManager = null;
-	
-	const PSR_0_CONFIG_NAME = 'config.psr0.php';
-	const PSR_4_CONFIG_NAME = 'config.psr4.php';
-	const CLASSMAP_CONFIG_NAME = 'config.classmap.php';
-	const LIB_MODULE_CONFIG_NAME = 'config.lib.module.php';
-	const MODULE_CONFIG_NAME = 'config.module.php';
 
+    /**
+     * Framework running.
+     *
+     * @return \TinyBS\BootStrap\BootStrap
+     */
+    static public function run(){
+        if(isset($GLOBALS['TinyCore']) || !empty($GLOBALS['TinyCore']))
+            throw new RuntimeException('Context was use already! It is a fatal error!');
+        EnvironmentTools::topEnvironmentPrepare();
+        $core = static::initialize();
+        static::loadUserConfig($core);
+        $route = new Route($core);
+        $route->loadModuleRoute();
+        return TinyBsRender::render($core, $route->dispatch());
+    }
 
     /**
      * @return \TinyBS\BootStrap\BootStrap
@@ -39,6 +52,30 @@ class BootStrap {
     static public function getLastRequestBootstrapObject(){
         return self::$requestBootstrapObject;
     }
+
+    /**
+     * load the match module configure file
+     * @param $moduleName
+     */
+    static public function loadSpecialModule($moduleName){
+        $composerAutoloader = ComposerAutoloader::getComposerAutoloader();
+        if(!$composerAutoloader)
+            throw new \RuntimeException('At '.__METHOD__.' : Composer\Autoload not load!');
+        if(isset(static::$modulePathMap[$moduleName]))
+            $composerAutoloader->set($moduleName, static::$modulePathMap[$moduleName]);
+    }
+
+
+    // use private access here to promise it all are under the control of this class
+    private function __construct(ServiceManager $sm) {
+        $this->serviceManager = $sm;
+    }
+    private $serviceManager = null;
+
+
+
+
+
     static private $requestBootstrapObject = null;
 	
 	static private $preLoadConfigFiles = array (
@@ -49,21 +86,18 @@ class BootStrap {
 	static private $postLoadConfigFiles = self::MODULE_CONFIG_NAME;
 	static private $modulePathMap = array();
 	
-	static public function initialize() {
+	static private function initialize() {
 		//load  setting for ComposerAutoloader.
 		BootStrap::prepareComposerAutoload ();
 		//build an instance of \TinyBS\BootStrap\BootStrap.
 		$core = new BootStrap ( new ServiceManager () );
-
-        if(!self::$requestBootstrapObject)
-            self::$requestBootstrapObject = $core;
+        $GLOBALS['TinyCore'] =  self::$requestBootstrapObject = $core;
 
         //load setting for inner ServiceManager that inside above instance.
         ServiceManagerUtils::initServiceManager($core->getServiceManager());
-
 		return $core;
 	}
-    static public function loadUserConfig(self $core){
+    static private function loadUserConfig(self $core){
 		//load user module
 		BootStrap::prepareUserLibModule();
 		
@@ -97,26 +131,13 @@ class BootStrap {
 		$core->getServiceManager()->setService('config', $moduleConfigs);
 		ServiceManagerUtils::configServiceManager($core->getServiceManager());
     }
-
-	/**
-	 * Framework running.
-	 * 
-	 * @return \TinyBS\BootStrap\BootStrap
-	 */
-	static public function run(){
-		$core = static::initialize();
-		static::loadUserConfig($core);
-		$route = new Route($core);
-		$route->loadModuleRoute();
-		return TinyBsRender::render($core, $route->dispatch());
-	}
 	
 	/**
 	 * load {,tinybs/}config/config.{psr0,psr4,classmap}.php into ComposerAutoloader
 	 * @author JiefzzLon
 	 * @return null
 	 */
-	static public function prepareComposerAutoload(){
+	static private function prepareComposerAutoload(){
 	    foreach ( BootStrap::$preLoadConfigFiles as $v )
 	        BootStrap::setConfigIntoComposerAutoloader ( $v, true );
 	    foreach ( BootStrap::$preLoadConfigFiles as $v )
@@ -128,7 +149,7 @@ class BootStrap {
 	 * @author JiefzzLon
 	 * @return null
 	 */
-	static public function prepareUserLibModule() {
+	static private function prepareUserLibModule() {
 	    $ModuleLibConfigName = USER_CONFIG_DIR.DS.self::LIB_MODULE_CONFIG_NAME;
 	    if ( ( $fileName = stream_resolve_include_path( $ModuleLibConfigName ) ) !== false ){
 	        $libModules = require $fileName;
@@ -243,13 +264,5 @@ class BootStrap {
 					$composerAutoloader->addClassMap ( $keys );
 					break;
 			}
-	}
-    
-	static public function loadSpecialModule($moduleName){
-		$composerAutoloader = ComposerAutoloader::getComposerAutoloader();
-		if(!$composerAutoloader)
-		    throw new \RuntimeException('At '.__METHOD__.' : Composer\Autoload not load!');
-	    if(isset(static::$modulePathMap[$moduleName]))
-	        $composerAutoloader->set($moduleName, static::$modulePathMap[$moduleName]);
 	}
 }

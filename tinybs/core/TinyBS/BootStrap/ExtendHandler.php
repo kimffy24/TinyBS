@@ -9,32 +9,36 @@
 namespace TinyBS\BootStrap;
 
 
-class ExtendHandler {
-    static public function prepareConfigure(){
+class ExtendHandler
+{
+    static private function prepareConfigure() {
         self::$lastCore = BootStrap::getLastRequestBootstrapObject();
         $lastCore = self::$lastCore;
-        if(!$lastCore)
-            die('TinyBS Environment Error!');
+        if (!$lastCore)
+            die('SomeError occur before TinyBS\BootStrap\BootStrap create or while TinyBS\BootStrap\BootStrap !');
 
-        if(!$lastCore->getServiceManager())
-            die('ServiceManager construct false!');
-
-        if(!$lastCore->getServiceManager()->has('TinyBS\RouteMatch\Route'))
-            die('do route match false!');
+        if (!$lastCore->getServiceManager()->has('TinyBS\RouteMatch\Route'))
+            return;
 
         $routeMatch = $lastCore->getServiceManager()->get('TinyBS\RouteMatch\Route');
         $matchNamespace = $routeMatch->getMatchNamespace();
-        if($matchNamespace){
+        if ($matchNamespace) {
             $config = $lastCore->getServiceManager()->get('config');
-            self::$target = (isset($config['exception_handler'][$matchNamespace]) && is_callable($config['exception_handler'][$matchNamespace]))?
-                $config['exception_handler'][$matchNamespace]:
+
+            if(isset($config['exception_switch'][$matchNamespace]) && $config['exception_switch'][$matchNamespace]==flase){
+                exit(0);
+            }
+
+            self::$target = (isset($config['exception_handler'][$matchNamespace]) && is_callable($config['exception_handler'][$matchNamespace])) ?
+                $config['exception_handler'][$matchNamespace] :
                 null;
         }
 
     }
-    static public function errorHandler($errorNo, $errorStr, $errorFile, $errorLine){
+
+    static public function errorHandler($errorNo, $errorStr, $errorFile, $errorLine) {
         self::prepareConfigure();
-        if(self::$target){
+        if (self::$target) {
             die(call_user_func_array(
                 self::$target,
                 array(BootStrap::getLastRequestBootstrapObject()->getServiceManager(), array($errorNo, $errorStr, $errorFile, $errorLine))
@@ -43,9 +47,9 @@ class ExtendHandler {
         self::defaultErrorHandler($errorNo, $errorStr, $errorFile, $errorLine);
     }
 
-    static public function exceptionHandler($exception){
+    static public function exceptionHandler($exception) {
         self::prepareConfigure();
-        if(self::$target){
+        if (self::$target) {
             die(call_user_func_array(
                 self::$target,
                 array(BootStrap::getLastRequestBootstrapObject()->getServiceManager(), array($exception))
@@ -55,15 +59,27 @@ class ExtendHandler {
     }
 
 
-    static public function defaultErrorHandler($errorNo, $errorStr, $errorFile, $errorLine){
-        echo "error #".(isset($errorNo)?$errorNo:-1).' occur!<br />';
-        echo "description: ".(isset($errorStr)?$errorStr:null).' <br />';
-        echo "on: file ".$errorFile." line ".$errorLine.' <br />';
-        die();
+    static private function defaultErrorHandler($errorNo, $errorStr, $errorFile, $errorLine) {
+        switch ($errorNo) {
+            case E_ERROR:
+                echo "ERROR: [ID $errorNo] $errorStr (Line: $errorLine of $errorFile)";
+                echo "程序已经停止运行，请联系管理员。";
+                //遇到Error级错误时退出脚本
+                exit;
+                break;
+            case E_WARNING:
+                echo "WARNING: [ID $errorNo] $errorStr (Line: $errorLine of $errorFile)";
+                break;
+            default:
+                //不显示Notice级的错误
+                break;
+        }
+
+        return;
     }
 
-    static public function defaltExceptionHandler($exception){
-        echo "Uncaught exception: " , $exception->getMessage(), "\n";
+    static private function defaltExceptionHandler($exception) {
+        echo "Uncaught exception: ", $exception->getMessage(), "\n";
         die();
     }
 
