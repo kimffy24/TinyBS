@@ -14,7 +14,7 @@ class ServiceManagerUtils
 	 * @author JiefzzLon
 	 */
 	static public function initServiceManager(ServiceManager $serviceManager) {
-	    $serviceManager->setService ( 'ServiceManager', $serviceManager );
+	    //$serviceManager->setService ( 'ServiceManager', $serviceManager );
 	    $initServiceManager = array(
 	        'factory' => 'setFactory',
 	        'alias' => 'setAlias',
