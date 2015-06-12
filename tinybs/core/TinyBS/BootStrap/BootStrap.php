@@ -8,6 +8,7 @@ use Zend\Stdlib\ArrayUtils;
 use TinyBS\RouteMatch\Route;
 use TinyBS\SimpleMvc\View\TinyBsRender;
 use TinyBS\Utils\RuntimeException;
+use TinyBS\Utils\RuntimeLogger;
 
 define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
 define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
@@ -38,12 +39,14 @@ class BootStrap {
      * @return \TinyBS\BootStrap\BootStrap
      */
     static public function run(){
+    	self::getRuntimeLogger()->info(__METHOD__.' was invoked!');
         EnvironmentTools::topEnvironmentPrepare();
         $core = static::initialize();
         static::loadUserConfig($core);
         $route = new Route($core);
-        $route->loadModuleRoute();
-        return TinyBsRender::render($core, $route->dispatch());
+        TinyBsRender::render(
+        	$core,
+        	$route->loadModuleRoute()->dispatch());
     }
 
     /**
@@ -75,6 +78,12 @@ class BootStrap {
     	self::$requestBootstrapObject = $this;
     	$this->serviceManager = $sm;
     }
+
+    static protected function getRuntimeLogger(){
+    	if(!self::$runtimeLogger)
+    		self::$runtimeLogger = new RuntimeLogger();
+    	return self::$runtimeLogger;
+    }
     
     private $serviceManager = null;
 
@@ -88,6 +97,8 @@ class BootStrap {
 	static private $postLoadConfigFiles = self::MODULE_CONFIG_NAME;
 	static private $modulePathMap = array();
 	
+	static private $runtimeLogger = null;
+	
 	static private function initialize() {
 		//load  setting for ComposerAutoloader.
 		self::prepareComposerAutoload ();
@@ -98,6 +109,7 @@ class BootStrap {
         ServiceManagerUtils::initServiceManager($core->getServiceManager());
 		return $core;
 	}
+	
     static private function loadUserConfig(self $core){
 		//load user library module into composer autoloader
 		self::prepareUserLibModule();
