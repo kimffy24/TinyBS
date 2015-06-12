@@ -41,7 +41,9 @@ class BootStrap {
     static public function run(){
     	self::getRuntimeLogger()->info(__METHOD__.' was invoked!');
         EnvironmentTools::topEnvironmentPrepare();
+    	self::getRuntimeLogger()->info(__METHOD__.' invoked EnvironmentTools::topEnvironmentPrepare()!');
         $core = static::initialize();
+        self::getRuntimeLogger()->info(__METHOD__.' construct a Bootstrap Object!');
         static::loadUserConfig($core);
         $route = new Route($core);
         TinyBsRender::render(
