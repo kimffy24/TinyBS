@@ -8,6 +8,7 @@
 
 namespace TinyBS\Utils;
 
+use TinyBS\BootStrap\BootStrap;
 
 class ExtendHandler {
 	

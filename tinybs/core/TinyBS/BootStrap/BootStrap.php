@@ -41,13 +41,23 @@ class BootStrap {
      * @return \TinyBS\BootStrap\BootStrap
      */
     static public function run(){
-    	self::getRuntimeLogger()->info(__METHOD__.' was invoked!');
+    		$logger = self::getRuntimeLogger();
+    		$logger ->info(__METHOD__.' was invoked!');
+    	EnvironmentTools::registerShutdown(function() use (&$logger) {
+        	$logger->info('TinyBS\Utils\EnvironmentTools::registerShutdown all is finished!');
+    	});
         EnvironmentTools::topEnvironmentPrepare();
-    	self::getRuntimeLogger()->info(__METHOD__.' invoked EnvironmentTools::topEnvironmentPrepare()!');
-        $core = self::initialize();
-        self::getRuntimeLogger()->info(__METHOD__.' construct a Bootstrap Object!');
-        self::loadUserConfig($core);
+    		$logger->info(__METHOD__.' invoked EnvironmentTools::topEnvironmentPrepare()!');
+    	if(($core=QuickBootStrapUtils::restore())==null){
+	        $core = self::initialize();
+	        	$logger->info(__METHOD__.' construct a Bootstrap Object!');
+	        QuickBootStrapUtils::persistent($core);
+    	}
+    	var_dump($core);
+	    self::loadUserConfig($core);
+	    $logger->info(__METHOD__.' all module config loaded!');
         $route = new Route($core);
+        	$logger->info(__METHOD__.' start route match and do dispatch!');
         TinyBsRender::render(
         	$core,
         	$route->loadModuleRoute()->dispatch());
