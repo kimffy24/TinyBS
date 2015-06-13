@@ -6,7 +6,6 @@ use Zend\ServiceManager\ServiceManager;
 use Zend\Stdlib\ArrayUtils;
 
 use TinyBS\RouteMatch\Route;
-use TinyBS\SimpleMvc\View\TinyBsRender;
 use TinyBS\Utils\RuntimeException;
 use TinyBS\Utils\RuntimeLogger;
 use TinyBS\Utils\NullLogger;
@@ -41,31 +40,32 @@ class BootStrap {
      * @return \TinyBS\BootStrap\BootStrap
      */
     static public function run(){
-    		$logger = self::getRuntimeLogger();
-    		$logger ->info(__METHOD__.' was invoked!');
+    	$logger = self::getRuntimeLogger()->info(__METHOD__.' was invoked!');
     	EnvironmentTools::registerShutdown(function() use (&$logger) {
         	$logger->info('TinyBS\Utils\EnvironmentTools::registerShutdown all is finished!');
     	});
         EnvironmentTools::topEnvironmentPrepare();
-    		$logger->info(__METHOD__.' invoked EnvironmentTools::topEnvironmentPrepare()!');
-    	if(($core=QuickBootStrapUtils::restore())==null){
-	        $core = self::initialize();
-	        $logger->info(__METHOD__.' construct a Bootstrap Object!');
-	    	$core->loadUserConfig();
-	    	$logger->info(__METHOD__.' all module config loaded!');
-	    	
-	    	QuickBootStrapUtils::persistent($core);
-    	} else 
-    		self::$requestBootstrapObject = $core;
-    	$core -> loadModuleIntoComposerAutoloader();
+    	$logger->info(__METHOD__.' invoked EnvironmentTools::topEnvironmentPrepare()!');
+
+    	$core = self::initialize();
     	
+        $logger->info(__METHOD__.' start route match and do dispatch!');
         $route = new Route($core);
-        	$logger->info(__METHOD__.' start route match and do dispatch!');
-        TinyBsRender::render(
-        	$core,
-        	$route->loadModuleRoute()->dispatch());
+        $route->loadModuleRoute()->dispatch();
     }
 
+    /**
+     * load {,tinybs/}config/config.{psr0,psr4,classmap}.php into ComposerAutoloader
+     * @author JiefzzLon
+     * @return null
+     */
+    static public function prepareComposerAutoload(){
+    	foreach ( self::$preLoadConfigFiles as $v )
+    		self::setConfigIntoComposerAutoloader ( $v, true );
+    	foreach ( self::$preLoadConfigFiles as $v )
+    		self::setConfigIntoComposerAutoloader ( $v );
+    }
+    
     /**
      * @return \TinyBS\BootStrap\BootStrap
      */
@@ -104,17 +104,27 @@ class BootStrap {
 			self::PSR_0_CONFIG_NAME,
 			self::PSR_4_CONFIG_NAME,
 			self::CLASSMAP_CONFIG_NAME 
-	);
-	static private $postLoadConfigFiles = self::MODULE_CONFIG_NAME;
-	
+	);	
 	
 	static private $runtimeLogger = null;
 	
 	static private function initialize() {
-		self::prepareComposerAutoload ();
-		$serviceManager = new ServiceManager ();
-        ServiceManagerUtils::initServiceManager($serviceManager);
-		return new static($serviceManager);
+		$serviceManager = null;
+		if(($core=QuickBootStrapUtils::restore())==null){
+			$serviceManager = new ServiceManager ();
+	        ServiceManagerUtils::initServiceManager($serviceManager);
+			$core = new static($serviceManager);
+			$core->loadUserConfig();
+			QuickBootStrapUtils::persistent($core);
+		} else {
+			self::$requestBootstrapObject = $core;
+			$serviceManager = $core->getServiceManager();
+		}
+
+		ServiceManagerUtils::registBaseInitializer($serviceManager);
+		$core -> loadModuleIntoComposerAutoloader();
+		
+		return $core;
 	}
 
 	/**
@@ -182,18 +192,6 @@ class BootStrap {
     		$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
 		}
 		return $moduleConfig;
-	}
-	
-	/**
-	 * load {,tinybs/}config/config.{psr0,psr4,classmap}.php into ComposerAutoloader
-	 * @author JiefzzLon
-	 * @return null
-	 */
-	static private function prepareComposerAutoload(){
-	    foreach ( self::$preLoadConfigFiles as $v )
-	        self::setConfigIntoComposerAutoloader ( $v, true );
-	    foreach ( self::$preLoadConfigFiles as $v )
-	        self::setConfigIntoComposerAutoloader ( $v );
 	}
 
 	/**

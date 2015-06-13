@@ -2,7 +2,11 @@
 namespace TinyBS\BootStrap;
 
 use TinyBS\Utils\RuntimeException;
+
 use Zend\ServiceManager\ServiceManager;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceManagerAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
 
 class ServiceManagerUtils {
@@ -64,5 +68,22 @@ class ServiceManagerUtils {
                 call_user_func_array(array($serviceManager, $method),$args);
 	        }
 	    }
+	}
+	
+	static public function registBaseInitializer(ServiceManager $serviceManager){
+		$initializers = array(
+				'ServiceLocatorAwareInterface' => function ($instance, ServiceLocatorInterface $serviceLocator) {
+					if ($serviceLocator instanceof ServiceManager && $instance instanceof ServiceManagerAwareInterface) {
+						$instance->setServiceManager($serviceLocator);
+					}
+				},
+				'ServiceManagerAwareInterface' => function ($instance, ServiceLocatorInterface $serviceLocator) {
+					if ($instance instanceof ServiceLocatorAwareInterface) {
+						$instance->setServiceLocator($serviceLocator);
+					}
+				},
+		);
+		foreach($initializers as $initializer)
+			$serviceManager->addInitializer($initializer);
 	}
 }

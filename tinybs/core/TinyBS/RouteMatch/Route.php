@@ -96,10 +96,11 @@ class Route {
 	 */
 	public function dispatch(){
 		$this->preDispatch();
-		return call_user_func_array(
+		$result = call_user_func_array(
 	        array($this->matchControllerObject, $this->matchAction.'Action'),
 	        array()
 	    );
+		$this->getBoostrapObject()->getServiceManager()->get('TinyBsRender')->render($result);
 	}
 	
 	/**

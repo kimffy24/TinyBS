@@ -13,4 +13,5 @@ if (!class_exists('Zend\ServiceManager\ServiceManager'))
 
 $composerAutoload->add('TinyBS', TINYBSROOT.DS.'tinybs'.DS.'core');
 TinyBS\BootStrap\ComposerAutoloader::setComposerAutoloader($composerAutoload);
+TinyBS\BootStrap\BootStrap::prepareComposerAutoload ();
 TinyBS\BootStrap\BootStrap::run();
