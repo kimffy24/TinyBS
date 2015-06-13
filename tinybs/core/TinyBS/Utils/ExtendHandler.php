@@ -8,49 +8,49 @@
 
 namespace TinyBS\Utils;
 
+use Exception;
+
 use TinyBS\BootStrap\BootStrap;
 
 class ExtendHandler {
 	
-	public function __construct(BootStrap $core){
-		$this->lastCore = $core;
+	static public function registerExceptionHandler(){
+		set_exception_handler(array(__CLASS__, 'exceptionHandler'));
 	}
 	
-	public function registerExceptionHandler(){
-		set_exception_handler(array(&$this, 'exceptionHandler'));
-	}
-	
-	public function registerErrorHandler(){
-		set_exception_handler(array(&$this, 'errorHandler'));
+	static public function registerErrorHandler(){
+		set_error_handler(array(__CLASS__, 'errorHandler'));
 	}
 
-    public function errorHandler($errorNo, $errorStr, $errorFile, $errorLine) {
-        $this->defaultErrorHandler($errorNo, $errorStr, $errorFile, $errorLine);
+    static public function errorHandler($errorNo, $errorStr, $errorFile, $errorLine) {
+        self::defaultErrorHandler($errorNo, $errorStr, $errorFile, $errorLine);
     }
 
-    public function exceptionHandler($exception) {
-        $this->prepareConfigure();
-        if ($this->target) {
+    static public function exceptionHandler(Exception $exception) {
+        self::prepareConfigure();
+        if (self::$target) {
             die(call_user_func_array(
-                $this->target,
-                array($this->getLastCoreObject()->getServiceManager(), $exception)
+                self::$target,
+                array(self::getLastCoreObject()->getServiceManager(), $exception)
             ));
         }
-        $this->defaltExceptionHandler($exception);
+        self::defaltExceptionHandler($exception);
     }
 
-    private $lastCore = null;
-    private $target = null;
+    static private $lastCore = null;
+    static private $target = null;
 
     /**
      * @return BootStrap
      */
-    private function getLastCoreObject(){
-    	return $this->lastCore;
+    static private function getLastCoreObject(){
+    	if(!self::$lastCore)
+    		self::$lastCore = BootStrap::getLastRequestBootstrapObject();
+    	return self::$lastCore;
     }
 	
-    private function prepareConfigure() {
-        $lastCore = $this->lastCore;
+    static private function prepareConfigure() {
+        $lastCore = self::getLastCoreObject();
         
         if (!$lastCore->getServiceManager()->has('TinyBS\RouteMatch\Route'))
             return;
@@ -63,29 +63,30 @@ class ExtendHandler {
             if(isset($config['exception_switch'][$matchNamespace]) && $config['exception_switch'][$matchNamespace]==flase)
                 exit(0);
 			
-            if(!$this->target)
+            if(!self::$target)
             	if (isset($config['exception_handler'][$matchNamespace]) && is_callable($config['exception_handler'][$matchNamespace]))
-                	$this->target = $config['exception_handler'][$matchNamespace];
+                	self::$target = $config['exception_handler'][$matchNamespace];
         }
 
     }
     
-    private function defaltExceptionHandler($exception) {
+    static private function defaltExceptionHandler(Exception $exception) {
         $msg = "Uncaught exception: ".$exception->getMessage()."<br />";
-        $this->defaultShow($msg,true);
+        $msg .= $exception->getTraceAsString();
+        self::defaultShow($msg,true);
     }
 
-    private function defaultErrorHandler($errorNo, $errorStr, $errorFile, $errorLine) {
+    static private function defaultErrorHandler($errorNo, $errorStr, $errorFile, $errorLine) {
         switch ($errorNo) {
             case E_ERROR:
                 $msg = "ERROR: [ID $errorNo] $errorStr (Line: $errorLine of $errorFile)<br />".
                 "程序已经停止运行，请联系管理员。";
-                $this->defaultShow($msg,true);
+                self::defaultShow($msg,true);
                 //遇到Error级错误时退出脚本
                 break;
             case E_WARNING:
                 $msg = "WARNING: [ID $errorNo] $errorStr (Line: $errorLine of $errorFile)";
-                $this->defaultShow($msg);
+                self::defaultShow($msg);
                 break;
             default:
                 //不显示Notice级的错误
@@ -95,7 +96,7 @@ class ExtendHandler {
         return;
     }
     
-    private function defaultShow($msg, $fatal=false){
+    static private function defaultShow($msg, $fatal=false){
     	echo $msg;
     	if($fatal)
     		die(-1);

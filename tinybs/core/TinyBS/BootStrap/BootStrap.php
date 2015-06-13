@@ -10,6 +10,7 @@ use TinyBS\Utils\RuntimeException;
 use TinyBS\Utils\RuntimeLogger;
 use TinyBS\Utils\NullLogger;
 use TinyBS\Utils\EnvironmentTools;
+use TinyBS\Utils\ExtendHandler;
 
 define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
 define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
@@ -18,13 +19,60 @@ define('MODULELOCATION', TINYBSROOT.DS.'src'.DS.'main'.DS.'src');
 
 class BootStrap {
 
-    const PSR_0_CONFIG_NAME = 'config.psr0.php';
-    const PSR_4_CONFIG_NAME = 'config.psr4.php';
-    const CLASSMAP_CONFIG_NAME = 'config.classmap.php';
-    
     const LIB_MODULE_CONFIG_NAME = 'config.lib.module.php';
     const MODULE_CONFIG_NAME = 'config.module.php';
 
+
+    /**
+     * TinyBS Framework Entrance.
+     *
+     * @return \TinyBS\BootStrap\BootStrap
+     */
+    static public function run(){
+    	$logger = EnvironmentTools::getRuntimeLogger()->info(__METHOD__.' was invoked!');
+    	ExtendHandler::registerExceptionHandler();
+    	ExtendHandler::registerErrorHandler();
+    	EnvironmentTools::registerShutdown(function() use (&$logger) {
+    		$logger->info('TinyBS\Utils\EnvironmentTools::registerShutdown all is finished!');
+    	});
+    	EnvironmentTools::topEnvironmentPrepare();
+    	$logger->info(__METHOD__.' invoked EnvironmentTools::topEnvironmentPrepare()!');
+
+    	$logger->info(__METHOD__.' initialize a core object!');
+    	$core = self::initialize();
+    	
+    	$logger->info(__METHOD__.' start route match and do dispatch!');
+    	$route = new Route($core);
+    	$route->loadModuleRoute()->dispatch();
+    }
+
+    /**
+     * @return \TinyBS\BootStrap\BootStrap
+     */
+    static public function getLastRequestBootstrapObject(){
+        return self::$requestBootstrapObject;
+    }
+    
+
+    static private $requestBootstrapObject = null;
+    static private function initialize() {
+    	$serviceManager = null;
+    	if(($core=QuickBootStrapUtils::restore())==null){
+    		$serviceManager = new ServiceManager ();
+    		ServiceManagerUtils::initServiceManager($serviceManager);
+    		$core = new static($serviceManager);
+    		$core->loadUserConfig();
+    		QuickBootStrapUtils::persistent($core);
+    	} else {
+    		self::$requestBootstrapObject = $core;
+    		$serviceManager = $core->getServiceManager();
+    	}
+    
+    	ServiceManagerUtils::registBaseInitializer($serviceManager);
+    	$core->loadModuleIntoComposerAutoloader(ComposerAutoloader::getComposerAutoloader());
+    	return $core;
+    }
+    
 	/**
 	 * return default ServiceManager instance
 	 * @return \Zend\ServiceManager\ServiceManager
@@ -34,46 +82,7 @@ class BootStrap {
 		return $this->serviceManager;
 	}
 
-    /**
-     * Framework running.
-     *
-     * @return \TinyBS\BootStrap\BootStrap
-     */
-    static public function run(){
-    	$logger = self::getRuntimeLogger()->info(__METHOD__.' was invoked!');
-    	EnvironmentTools::registerShutdown(function() use (&$logger) {
-        	$logger->info('TinyBS\Utils\EnvironmentTools::registerShutdown all is finished!');
-    	});
-        EnvironmentTools::topEnvironmentPrepare();
-    	$logger->info(__METHOD__.' invoked EnvironmentTools::topEnvironmentPrepare()!');
-
-    	$core = self::initialize();
-    	
-        $logger->info(__METHOD__.' start route match and do dispatch!');
-        $route = new Route($core);
-        $route->loadModuleRoute()->dispatch();
-    }
-
-    /**
-     * load {,tinybs/}config/config.{psr0,psr4,classmap}.php into ComposerAutoloader
-     * @author JiefzzLon
-     * @return null
-     */
-    static public function prepareComposerAutoload(){
-    	foreach ( self::$preLoadConfigFiles as $v )
-    		self::setConfigIntoComposerAutoloader ( $v, true );
-    	foreach ( self::$preLoadConfigFiles as $v )
-    		self::setConfigIntoComposerAutoloader ( $v );
-    }
-    
-    /**
-     * @return \TinyBS\BootStrap\BootStrap
-     */
-    static public function getLastRequestBootstrapObject(){
-        return self::$requestBootstrapObject;
-    }
-
-
+	
     /**
      * we do not use public access here
      * @throws RuntimeException
@@ -85,54 +94,15 @@ class BootStrap {
     	$this->serviceManager = $sm;
     }
 
-    static protected function getRuntimeLogger(){
-    	if(!self::$runtimeLogger) {
-    		if(is_file(TINYBSROOT.DS.'development'))
-    			self::$runtimeLogger = new RuntimeLogger();
-    		else 
-    			self::$runtimeLogger = new NullLogger();
-    	}
-    	return self::$runtimeLogger;
-    }
+
     
     private $serviceManager = null;
 	private $modulePathMap = array();
-
-    static private $requestBootstrapObject = null;
-	
-	static private $preLoadConfigFiles = array (
-			self::PSR_0_CONFIG_NAME,
-			self::PSR_4_CONFIG_NAME,
-			self::CLASSMAP_CONFIG_NAME 
-	);	
-	
-	static private $runtimeLogger = null;
-	
-	static private function initialize() {
-		$serviceManager = null;
-		if(($core=QuickBootStrapUtils::restore())==null){
-			$serviceManager = new ServiceManager ();
-	        ServiceManagerUtils::initServiceManager($serviceManager);
-			$core = new static($serviceManager);
-			$core->loadUserConfig();
-			QuickBootStrapUtils::persistent($core);
-		} else {
-			self::$requestBootstrapObject = $core;
-			$serviceManager = $core->getServiceManager();
-		}
-
-		ServiceManagerUtils::registBaseInitializer($serviceManager);
-		$core -> loadModuleIntoComposerAutoloader();
-		
-		return $core;
-	}
-
 	/**
 	 * add the match module path into composer autoloader
 	 * @param $moduleName
 	 */
-	private function loadModuleIntoComposerAutoloader(){
-		$composerAutoloader = ComposerAutoloader::getComposerAutoloader();
+	private function loadModuleIntoComposerAutoloader($composerAutoloader){
 		foreach($this->modulePathMap as $namespace => $path)
 			$composerAutoloader->set($namespace, $path);
 	}
@@ -192,61 +162,5 @@ class BootStrap {
     		$moduleConfig = ArrayUtils::merge($moduleConfig, $moduleDetails);
 		}
 		return $moduleConfig;
-	}
-
-	/**
-	 * general the path to Absolutely Path or TINYBSROOT
-	 *
-	 * @param unknown $path        	
-	 * @return unknown
-	 */
-	static private function generalPath($path) {
-		if (is_string ( $path )) {
-			if ($path [0] == '/')
-				return $path;
-			else if ($path [0] == '.') {
-				if ($path [1] == '.')
-					return self::generalPath ( TINYBSROOT . DS . substr ( $path, 2 ) );
-				else if ($path [1] == DS)
-					return self::generalPath ( TINYBSROOT . DS . 'config' . substr ( $path, 1 ) );
-				else
-					return self::generalPath ( TINYBSROOT . DS . 'config' . DS . $path );
-			} else if (preg_match ( '/^[a-zA-Z0-9]\\:/', $path ))
-				return $path;
-		}
-		return $path;
-	}
-	
-	/**
-	 * set config into ComposerAutoloader
-	 * @param string $configName
-	 * @param boolean $isSysConfig
-	 * @author JiefzzLon
-	 */
-	static private function setConfigIntoComposerAutoloader($configName, $isSysConfig = false) {
-		$config = ($isSysConfig)?
-			TINY_CONFIG_DIR . DS . $configName:
-			USER_CONFIG_DIR . DS . $configName;
-		if( ( $rConfig = stream_resolve_include_path( $config ) ) !== false )
-			$keys = require $rConfig;
-		else
-			return;
-		
-		$composerAutoloader = ComposerAutoloader::getComposerAutoloader ();
-		
-		if (is_array ( $keys ) and count ( $keys ))
-			switch ($configName) {
-				case self::PSR_0_CONFIG_NAME :
-					foreach ( $keys as $k => $v )
-						$composerAutoloader->set ( $k, self::generalPath ( $v ) );
-					break;
-				case self::PSR_4_CONFIG_NAME :
-					foreach ( $keys as $k => $v )
-						$composerAutoloader->setPsr4 ( $k, self::generalPath ( $v ) );
-					break;
-				case self::CLASSMAP_CONFIG_NAME :
-					$composerAutoloader->addClassMap ( $keys );
-					break;
-			}
 	}
 }
