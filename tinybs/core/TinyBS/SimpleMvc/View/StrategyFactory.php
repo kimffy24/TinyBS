@@ -1,7 +1,10 @@
 <?php
 namespace TinyBS\SimpleMvc\View;
 
-use Exception;
+use TinyBS\Utils\RuntimeException;
+use TinyBS\SimpleMvc\View\Strategy\JsonStrategy;
+use TinyBS\SimpleMvc\View\Strategy\StringStrategy;
+use TinyBS\SimpleMvc\View\Strategy\VarDumpStrategy;
 
 class StrategyFactory
 {
@@ -14,14 +17,14 @@ class StrategyFactory
         $targetStrategy = strtolower($name);
         switch($targetStrategy){
         	case 'json':
-        		return new \TinyBS\SimpleMvc\View\Strategy\JsonStrategy();
+        		return new  JsonStrategy();
         	case 'string':
-        		return new \TinyBS\SimpleMvc\View\Strategy\StringStrategy();
+        		return new StringStrategy();
         	case 'print_r':
         	case 'vardump':
-        		return new \TinyBS\SimpleMvc\View\Strategy\VarDumpStrategy();
+        		return new VarDumpStrategy();
         	default :
-        		throw new Exception(__METHOD__.'() class '.$targetStrategy.' not found');
+        		throw new RuntimeException(__METHOD__.'() class '.$targetStrategy.' not found');
         }
     }
 }

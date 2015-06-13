@@ -10,6 +10,8 @@ use TinyBS\SimpleMvc\View\TinyBsRender;
 use TinyBS\Utils\RuntimeException;
 use TinyBS\Utils\RuntimeLogger;
 use TinyBS\Utils\NullLogger;
+use TinyBS\Utils\ExtendHandler;
+use TinyBS\Utils\EnvironmentTools;
 
 define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
 define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
@@ -189,7 +191,7 @@ class BootStrap {
     			$tempFileName = MODULECONFIG.DS.$userModule.DS.'module.config.php';
     			if( ( $moduleConfigFile = stream_resolve_include_path( $tempFileName ) ) === false )
     			    if($strict)
-    				    throw new \RuntimeException("There no config file '.$tempFileName.' on loading module ".$userModule.'. ');
+    				    throw new RuntimeException("There no config file '.$tempFileName.' on loading module ".$userModule.'. ');
     			    else continue;
     			// set the path map
     			static::$modulePathMap[$userModule] = MODULELOCATION;
@@ -202,7 +204,7 @@ class BootStrap {
 				$tempFileName = $modulePath . DS . 'config' . DS . 'module.config.php';
 				if (($moduleConfigFile = stream_resolve_include_path( $tempFileName ) ) === false )
     			    if($strict)
-    				    throw new \RuntimeException("There no config file '.$moduleConfigFile.' on loading module ".$moduleName.' configs.');
+    				    throw new RuntimeException("There no config file '.$moduleConfigFile.' on loading module ".$moduleName.' configs.');
     			    else continue;
     			static::$modulePathMap[$moduleName] = $modulePath.DS.'src';
 		    }

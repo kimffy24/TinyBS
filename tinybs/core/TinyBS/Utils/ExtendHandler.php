@@ -6,7 +6,7 @@
  * Time: 4:32 PM
  */
 
-namespace TinyBS\BootStrap;
+namespace TinyBS\Utils;
 
 
 class ExtendHandler {

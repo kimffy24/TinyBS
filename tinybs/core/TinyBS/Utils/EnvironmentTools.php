@@ -6,7 +6,7 @@
  * Time: 3:45 PM
  */
 
-namespace TinyBS\BootStrap;
+namespace TinyBS\Utils;
 
 
 class EnvironmentTools {
