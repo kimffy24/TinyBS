@@ -1,8 +1,7 @@
 <?php
 namespace TinyBS\RouteMatch;
 
-use RuntimeException;
-
+use TinyBS\Utils\RuntimeException;
 use TinyBS\BootStrap\BootStrap;
 use TinyBS\BootStrap\ServiceManagerUtils;
 use TinyBS\SimpleMvc\Utils\ModuleInitializationInterface;
@@ -57,6 +56,8 @@ class Route {
 	public function loadModuleRoute(){
 		$core = $this->getBoostrapObject();
 		$serviceManager = $core->getServiceManager();
+		$targetControllerObject = null;
+		$targetController = null;
 		
 		$route = $serviceManager->get('route');
 		$routeMatch = $route->match($serviceManager->get('Request'));
@@ -71,30 +72,26 @@ class Route {
             $routeMatchParams['controller']
         ;
         $this->matchNamespace = substr($targetController, 0, strpos($targetController, '\\'));
-        BootStrap::loadSpecialModule($this->matchNamespace);
+        BootStrap::loadSpecialModuleIntoComposerAutoloader($this->matchNamespace);
 		if(class_exists($targetController)){
 		    $this->matchControllerObject = $targetControllerObject = new $targetController();
             $this->matchController = $targetController;
-            $serviceManager->setService($targetController, $targetControllerObject);
-            
-		    if(($targetControllerObject instanceof ServiceLocatorAwareInterface))
-		        $targetControllerObject->setServiceLocator($serviceManager);
-            
             if(is_callable(array(
             				$targetControllerObject,
-            				$routeMatchParams['action'].'Action'
-            		)))
+            				$routeMatchParams['action'].'Action')))
             	$this->matchAction = $routeMatchParams['action'];
             else 
 		    	throw new RuntimeException('At '.__METHOD__.' : There no match method is this module!');
 		} else 
 		    throw new RuntimeException('At '.__METHOD__.' : There match controller doesn\'t exist!');
-		
+
+		$serviceManager->setService($targetController, $targetControllerObject);
+		$serviceManager->setAlias('matchController', $targetController);
 		return $this;
 	}
 	
 	/**
-	 * 触发命中的控制器方法
+	 * dispatch
 	 * @param BootStrap $core
 	 * @return mixed
 	 */
@@ -107,13 +104,16 @@ class Route {
 	}
 	
 	/**
-	 * 调用模块自身的初始化函数（假如存在）
-	 * 调用目标控制器的初始化函数（假如存在）
+	 * Inject ServiceManager object into the match Controller object and ModuleInitialization object (if exist)!
+	 * and try to do initialization on the match modules <br />
+	 * and try to load the special setting to ServiceManager <br />
+	 * and try to invoke _preDispath method on the match Controller object <br />
 	 */
 	private function preDispatch(){
+		$serviceManager = $this->getBoostrapObject()->getServiceManager();
+		
 		$moduleInitializationClass = $this->getMatchNamespace().'\\ModuleInitialization';
 		if(class_exists($moduleInitializationClass)){
-			$serviceManager = $this->getBoostrapObject()->getServiceManager();
 			$moduleInitializationObject = new $moduleInitializationClass();
 			
 			//regist into ServiceManager object
@@ -134,9 +134,14 @@ class Route {
 					$moduleInitializationObject->getServiceManagerConfigArray());
 		}
 		
+
+		$targetControllerObject = $this->matchControllerObject;
+		if(($targetControllerObject instanceof ServiceLocatorAwareInterface))
+			$targetControllerObject->setServiceLocator($serviceManager);
+		
 		//if the matchController implement PreDispatchInterface, invoke the method '_preDispatch'
-		if($this->matchControllerObject instanceof PreDispatchInterface)
-			$this->matchControllerObject->_preDispatch();
+		if($targetControllerObject instanceof PreDispatchInterface)
+			$targetControllerObject->_preDispatch();
 	}
 	
 	/**

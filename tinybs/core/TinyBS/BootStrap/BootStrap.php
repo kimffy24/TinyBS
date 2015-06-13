@@ -10,7 +10,6 @@ use TinyBS\SimpleMvc\View\TinyBsRender;
 use TinyBS\Utils\RuntimeException;
 use TinyBS\Utils\RuntimeLogger;
 use TinyBS\Utils\NullLogger;
-use TinyBS\Utils\ExtendHandler;
 use TinyBS\Utils\EnvironmentTools;
 
 define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
@@ -45,9 +44,9 @@ class BootStrap {
     	self::getRuntimeLogger()->info(__METHOD__.' was invoked!');
         EnvironmentTools::topEnvironmentPrepare();
     	self::getRuntimeLogger()->info(__METHOD__.' invoked EnvironmentTools::topEnvironmentPrepare()!');
-        $core = static::initialize();
+        $core = self::initialize();
         self::getRuntimeLogger()->info(__METHOD__.' construct a Bootstrap Object!');
-        static::loadUserConfig($core);
+        self::loadUserConfig($core);
         $route = new Route($core);
         TinyBsRender::render(
         	$core,
@@ -62,15 +61,13 @@ class BootStrap {
     }
 
     /**
-     * load the match module configure file
+     * add the match module path into composer autoloader
      * @param $moduleName
      */
-    static public function loadSpecialModule($moduleName){
+    static public function loadSpecialModuleIntoComposerAutoloader($moduleName){
         $composerAutoloader = ComposerAutoloader::getComposerAutoloader();
-        if(!$composerAutoloader)
-            throw new RuntimeException('At '.__METHOD__.' : Composer\Autoload not load!');
-        if(isset(static::$modulePathMap[$moduleName]))
-            $composerAutoloader->set($moduleName, static::$modulePathMap[$moduleName]);
+        if(isset(self::$modulePathMap[$moduleName]))
+            $composerAutoloader->set($moduleName, self::$modulePathMap[$moduleName]);
     }
 
     /**
@@ -146,10 +143,10 @@ class BootStrap {
 	 * @return null
 	 */
 	static private function prepareComposerAutoload(){
-	    foreach ( BootStrap::$preLoadConfigFiles as $v )
-	        BootStrap::setConfigIntoComposerAutoloader ( $v, true );
-	    foreach ( BootStrap::$preLoadConfigFiles as $v )
-	        BootStrap::setConfigIntoComposerAutoloader ( $v );
+	    foreach ( self::$preLoadConfigFiles as $v )
+	        self::setConfigIntoComposerAutoloader ( $v, true );
+	    foreach ( self::$preLoadConfigFiles as $v )
+	        self::setConfigIntoComposerAutoloader ( $v );
 	}
 
 	/**
@@ -206,7 +203,7 @@ class BootStrap {
     			    if($strict)
     				    throw new RuntimeException("There no config file '.$moduleConfigFile.' on loading module ".$moduleName.' configs.');
     			    else continue;
-    			static::$modulePathMap[$moduleName] = $modulePath.DS.'src';
+    			self::$modulePathMap[$moduleName] = $modulePath.DS.'src';
 		    }
 		    // >>> load the module config file.
     		$moduleDetails = require $moduleConfigFile;
@@ -227,11 +224,11 @@ class BootStrap {
 				return $path;
 			else if ($path [0] == '.') {
 				if ($path [1] == '.')
-					return BootStrap::generalPath ( TINYBSROOT . DS . substr ( $path, 2 ) );
+					return self::generalPath ( TINYBSROOT . DS . substr ( $path, 2 ) );
 				else if ($path [1] == DS)
-					return BootStrap::generalPath ( TINYBSROOT . DS . 'config' . substr ( $path, 1 ) );
+					return self::generalPath ( TINYBSROOT . DS . 'config' . substr ( $path, 1 ) );
 				else
-					return BootStrap::generalPath ( TINYBSROOT . DS . 'config' . DS . $path );
+					return self::generalPath ( TINYBSROOT . DS . 'config' . DS . $path );
 			} else if (preg_match ( '/^[a-zA-Z0-9]\\:/', $path ))
 				return $path;
 		}
@@ -258,11 +255,11 @@ class BootStrap {
 			switch ($configName) {
 				case self::PSR_0_CONFIG_NAME :
 					foreach ( $keys as $k => $v )
-						$composerAutoloader->set ( $k, BootStrap::generalPath ( $v ) );
+						$composerAutoloader->set ( $k, self::generalPath ( $v ) );
 					break;
 				case self::PSR_4_CONFIG_NAME :
 					foreach ( $keys as $k => $v )
-						$composerAutoloader->setPsr4 ( $k, BootStrap::generalPath ( $v ) );
+						$composerAutoloader->setPsr4 ( $k, self::generalPath ( $v ) );
 					break;
 				case self::CLASSMAP_CONFIG_NAME :
 					$composerAutoloader->addClassMap ( $keys );

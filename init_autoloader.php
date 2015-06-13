@@ -1,6 +1,5 @@
 <?php
 // Composer autoloading
-if (file_exists(__DIR__.'/vendor/autoload.php')) {
-	return $loader = include __DIR__.'/vendor/autoload.php';
-} else
-    throw new RuntimeException('An error occur on Composer initialization.');
+if (($loaderPath = stream_resolve_include_path(__DIR__.'/vendor/autoload.php'))===false)
+	throw new RuntimeException('An error occur on Composer initialization.');
+return $loader = include $loaderPath;
