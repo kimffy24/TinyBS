@@ -9,6 +9,7 @@ use TinyBS\RouteMatch\Route;
 use TinyBS\SimpleMvc\View\TinyBsRender;
 use TinyBS\Utils\RuntimeException;
 use TinyBS\Utils\RuntimeLogger;
+use TinyBS\Utils\NullLogger;
 
 define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
 define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
@@ -82,8 +83,12 @@ class BootStrap {
     }
 
     static protected function getRuntimeLogger(){
-    	if(!self::$runtimeLogger)
-    		self::$runtimeLogger = new RuntimeLogger();
+    	if(!self::$runtimeLogger) {
+    		if(is_file(TINYBSROOT.DS.'development'))
+    			self::$runtimeLogger = new RuntimeLogger();
+    		else 
+    			self::$runtimeLogger = new NullLogger();
+    	}
     	return self::$runtimeLogger;
     }
     
