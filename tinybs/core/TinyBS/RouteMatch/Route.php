@@ -72,8 +72,7 @@ class Route {
             $routeMatchParams['controller']
         ;
         $this->matchNamespace = substr($targetController, 0, strpos($targetController, '\\'));
-        BootStrap::loadSpecialModuleIntoComposerAutoloader($this->matchNamespace);
-		if(class_exists($targetController)){
+        if(class_exists($targetController)){
 		    $this->matchControllerObject = $targetControllerObject = new $targetController();
             $this->matchController = $targetController;
             if(is_callable(array(

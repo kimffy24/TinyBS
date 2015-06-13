@@ -1,6 +1,4 @@
 <?php
-use HelloWorldTinyBS\Service\TbsRender\Render;
-
 return array (
 		'router' => array (
 				'routes' => array (
@@ -15,14 +13,6 @@ return array (
 										) 
 								) 
 						) 
-				) 
-		),
-		'tbs_view' => array (
-				'HelloWorldTinyBS' => array (
-						'actor' => function ($renderResult) {
-							$view = new Render ();
-							return $view->render ( $renderResult );
-						} 
 				) 
 		),
 		'service_manager' => array (
