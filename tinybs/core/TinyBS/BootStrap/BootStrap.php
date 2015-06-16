@@ -62,7 +62,7 @@ class BootStrap {
     		ServiceManagerUtils::initServiceManager($serviceManager);
     		$core = new static($serviceManager);
     		$core->loadUserConfig();
-    		QuickBootStrapUtils::persistent($core);
+    		//QuickBootStrapUtils::persistent($core);
     	} else {
     		self::$requestBootstrapObject = $core;
     		$serviceManager = $core->getServiceManager();

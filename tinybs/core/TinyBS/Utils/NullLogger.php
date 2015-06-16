@@ -10,7 +10,7 @@ class NullLogger implements LoggerInterface{
 	 */
 	public function emerg($message, $extra = array()) {
 		// TODO Auto-generated method stub
-		
+        return $this;
 	}
 
 	/* (non-PHPdoc)
@@ -18,7 +18,7 @@ class NullLogger implements LoggerInterface{
 	 */
 	public function alert($message, $extra = array()) {
 		// TODO Auto-generated method stub
-		
+        return $this;
 	}
 
 	/* (non-PHPdoc)
@@ -26,7 +26,7 @@ class NullLogger implements LoggerInterface{
 	 */
 	public function crit($message, $extra = array()) {
 		// TODO Auto-generated method stub
-		
+        return $this;
 	}
 
 	/* (non-PHPdoc)
@@ -34,7 +34,7 @@ class NullLogger implements LoggerInterface{
 	 */
 	public function err($message, $extra = array()) {
 		// TODO Auto-generated method stub
-		
+        return $this;
 	}
 
 	/* (non-PHPdoc)
@@ -42,7 +42,7 @@ class NullLogger implements LoggerInterface{
 	 */
 	public function warn($message, $extra = array()) {
 		// TODO Auto-generated method stub
-		
+        return $this;
 	}
 
 	/* (non-PHPdoc)
@@ -50,7 +50,7 @@ class NullLogger implements LoggerInterface{
 	 */
 	public function notice($message, $extra = array()) {
 		// TODO Auto-generated method stub
-		
+		return $this;
 	}
 
 	/* (non-PHPdoc)
@@ -58,7 +58,7 @@ class NullLogger implements LoggerInterface{
 	 */
 	public function info($message, $extra = array()) {
 		// TODO Auto-generated method stub
-		
+        return $this;
 	}
 
 	/* (non-PHPdoc)
@@ -66,6 +66,10 @@ class NullLogger implements LoggerInterface{
 	 */
 	public function debug($message, $extra = array()) {
 		// TODO Auto-generated method stub
-		
+        return $this;
 	}
+
+    public function log($level, $message, $extra = array()){
+        return $this;
+    }
 }

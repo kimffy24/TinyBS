@@ -1,11 +1,19 @@
 <?php
 namespace TinyBS\SimpleMvc\Controller;
 
+use TinyBS\SimpleMvc\Controller\Utils\PreDispatchInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-abstract class TinyBsBaseController implements ServiceLocatorAwareInterface
+abstract class TinyBsBaseController implements ServiceLocatorAwareInterface,PreDispatchInterface
 {
+    /**
+     * 等待重写的方法
+     * @ignore
+     */
+    public function _preDispatch(){
+    }
+
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator){
         $this->serviceLocator = $serviceLocator;
         return $this;
