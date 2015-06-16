@@ -6,27 +6,30 @@
  * Time: 3:45 PM
  */
 
-namespace TinyBS\BootStrap;
+namespace TinyBS\Utils;
 
 
 class EnvironmentTools {
 
-    static function topEnvironmentPrepare(){
-
-
-        //set error or exception handler to deal it with tbs inner handler!
-        set_error_handler(array('\TinyBS\BootStrap\ExtendHandler', 'errorHandler'));
-        set_exception_handler(array('\TinyBS\BootStrap\ExtendHandler', 'exceptionHandler'));
-
+    static public function topEnvironmentPrepare(){
         self::prepareOutputBufferFunction();
     }
-
+	static public function getRuntimeLogger(){
+    	if(!self::$runtimeLogger) {
+    		if(is_file(TINYBSROOT.DS.'development'))
+    			self::$runtimeLogger = new RuntimeLogger();
+    		else
+    			self::$runtimeLogger = new NullLogger();
+    	}
+    	return self::$runtimeLogger;
+    }
     static public function registerShutdown($callback){
         if(is_callable($callback))
             register_shutdown_function($callback);
     }
 
 
+    static private $runtimeLogger = null;
     static private function prepareOutputBufferFunction(){
         // if output buffer is not supported, then end invoking!
         if(!function_exists('ob_get_level'))

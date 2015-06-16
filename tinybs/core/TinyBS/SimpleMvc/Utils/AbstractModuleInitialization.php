@@ -11,14 +11,11 @@ use Zend\ServiceManager\ServiceManagerAwareInterface;
  * @author Jiefzz
  *
  */
-abstract class AbstractModuleInitialization implements
-	ModuleInitializationInterface,
-	ServiceManagerAwareInterface
+abstract class AbstractModuleInitialization
+	implements ModuleInitializationInterface, ServiceManagerAwareInterface
 {
-	/*public function __construct(ServiceManager $sm=null){
-		$this->serviceManager = $sm;
-	}*/
-
+	public function initModule(){}
+	
 	/**
 	 * if the ServiceManager Object was not given while construct
 	 * use this method to set ServiceManager in.

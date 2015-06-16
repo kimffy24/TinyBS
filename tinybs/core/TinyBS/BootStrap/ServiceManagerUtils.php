@@ -1,12 +1,15 @@
 <?php
 namespace TinyBS\BootStrap;
 
-use RuntimeException;
+use TinyBS\Utils\RuntimeException;
+
 use Zend\ServiceManager\ServiceManager;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceManagerAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
 
-class ServiceManagerUtils
-{
+class ServiceManagerUtils {
 	/**
 	 * load config in TINYBSROOT/tinybs/config/config.servicemanager.{factory,alias,invokableclass}.php
 	 *
@@ -14,7 +17,6 @@ class ServiceManagerUtils
 	 * @author JiefzzLon
 	 */
 	static public function initServiceManager(ServiceManager $serviceManager) {
-	    //$serviceManager->setService ( 'ServiceManager', $serviceManager );
 	    $initServiceManager = array(
 	        'factory' => 'setFactory',
 	        'alias' => 'setAlias',
@@ -26,7 +28,7 @@ class ServiceManagerUtils
 	            $config = require $result;
 	            if(!count($config)) continue;
 	            foreach($config as $key=> $value)
-	                $serviceManager->$v($key, $value);
+	                call_user_func_array(array($serviceManager, $v), array($key, $value));
 	        }
 	    }
 	}
@@ -47,8 +49,7 @@ class ServiceManagerUtils
 	        $args =  array();
 	        switch($k){
 	            case 'abstract_factories':
-	                $method = 'addAbstractFactory';
-	                break;
+	                $method = 'addAbstractFactory';break;
 	            case 'aliases':
 	                $method = 'setAlias';break;
 	            case 'factories':
@@ -67,5 +68,22 @@ class ServiceManagerUtils
                 call_user_func_array(array($serviceManager, $method),$args);
 	        }
 	    }
+	}
+	
+	static public function registBaseInitializer(ServiceManager $serviceManager){
+		$initializers = array(
+				'ServiceLocatorAwareInterface' => function ($instance, ServiceLocatorInterface $serviceLocator) {
+					if ($serviceLocator instanceof ServiceManager && $instance instanceof ServiceManagerAwareInterface) {
+						$instance->setServiceManager($serviceLocator);
+					}
+				},
+				'ServiceManagerAwareInterface' => function ($instance, ServiceLocatorInterface $serviceLocator) {
+					if ($instance instanceof ServiceLocatorAwareInterface) {
+						$instance->setServiceLocator($serviceLocator);
+					}
+				},
+		);
+		foreach($initializers as $initializer)
+			$serviceManager->addInitializer($initializer);
 	}
 }

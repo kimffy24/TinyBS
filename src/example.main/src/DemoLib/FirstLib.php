@@ -1,5 +1,5 @@
 <?php
-namespace DemoLib\Utils;
+namespace DemoLib;
 
 class FirstLib
 {
