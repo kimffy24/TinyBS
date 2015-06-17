@@ -26,6 +26,7 @@ class ComposerAutoloader {
 	 * @param \TinyBS\BootStrap\ComposerAutoloader $composerAutoloader
 	 */
 	static public function setComposerAutoloader($composerAutoloader) {
+        spl_autoload_register(array($composerAutoloader, 'loadClass'), true, true);
 		self::$composerAutoloader = $composerAutoloader;
 		self::prepareComposerAutoload();
 	}

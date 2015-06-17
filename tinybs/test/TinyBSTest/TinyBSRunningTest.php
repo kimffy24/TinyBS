@@ -1,13 +1,16 @@
 <?php
-
 namespace TinyBSTest;
 
-class TinyBSRunningTest extends \PHPUnit_Framework_TestCase {
+use TinyBS\BootStrap\BootStrap;
+use Zend\ServiceManager\ServiceManager;
+use PHPUnit_Framework_TestCase;
+
+class TinyBSRunningTest extends PHPUnit_Framework_TestCase {
     /**
      * @test
      * @author JiefzzLon
      */
-	public function unitTestWillRunFirst()
+	public function unitTestWillRun1()
 	{
 		$this->assertTrue(true);
 	}
@@ -15,11 +18,11 @@ class TinyBSRunningTest extends \PHPUnit_Framework_TestCase {
      * @test
      * @author JiefzzLon
      */
-	public function unitTestWillRun()
+	public function unitTestWillRun2()
 	{
 		$core = BootstrapUnitTest::getCore();
 		$this->assertNotNull($core);
-		$this->assertTrue($core instanceof \TinyBS\BootStrap\BootStrap);
-		$this->assertTrue($core->getServiceManager() instanceof \Zend\ServiceManager\ServiceManager );
+		$this->assertTrue($core instanceof BootStrap);
+		$this->assertTrue($core->getServiceManager() instanceof ServiceManager );
 	}
 }

@@ -12,6 +12,6 @@ class BootStrapTest extends \PHPUnit_Framework_TestCase {
      * @author JiefzzLon
      */
     public function loadUserConfig(){
-        $this->assertTrue(true);
+        $this->assertTrue(class_exists('TinyBS\SimpleMvc\Controller\TinyBsBaseController'));
     }
 }

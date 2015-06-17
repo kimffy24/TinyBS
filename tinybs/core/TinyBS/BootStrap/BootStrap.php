@@ -12,8 +12,6 @@ use TinyBS\Utils\NullLogger;
 use TinyBS\Utils\EnvironmentTools;
 use TinyBS\Utils\ExtendHandler;
 
-define('USER_CONFIG_DIR', TINYBSROOT.DS.'config');
-define('TINY_CONFIG_DIR', TINYBSROOT.DS.'tinybs'.DS.'config');
 define('MODULECONFIG', TINYBSROOT.DS.'src'.DS.'main'.DS.'config');
 define('MODULELOCATION', TINYBSROOT.DS.'src'.DS.'main'.DS.'src');
 
@@ -52,26 +50,26 @@ class BootStrap {
     static public function getLastRequestBootstrapObject(){
         return self::$requestBootstrapObject;
     }
-    
+
+    static public function initialize() {
+        $serviceManager = null;
+        if(($core=QuickBootStrapUtils::restore())==null){
+            $serviceManager = new ServiceManager ();
+            ServiceManagerUtils::initServiceManager($serviceManager);
+            $core = new static($serviceManager);
+            $core->loadUserConfig();
+            //QuickBootStrapUtils::persistent($core);
+        } else {
+            self::$requestBootstrapObject = $core;
+            $serviceManager = $core->getServiceManager();
+        }
+
+        ServiceManagerUtils::registBaseInitializer($serviceManager);
+        $core->loadModuleIntoComposerAutoloader(ComposerAutoloader::getComposerAutoloader());
+        return $core;
+    }
 
     static private $requestBootstrapObject = null;
-    static private function initialize() {
-    	$serviceManager = null;
-    	if(($core=QuickBootStrapUtils::restore())==null){
-    		$serviceManager = new ServiceManager ();
-    		ServiceManagerUtils::initServiceManager($serviceManager);
-    		$core = new static($serviceManager);
-    		$core->loadUserConfig();
-    		//QuickBootStrapUtils::persistent($core);
-    	} else {
-    		self::$requestBootstrapObject = $core;
-    		$serviceManager = $core->getServiceManager();
-    	}
-    
-    	ServiceManagerUtils::registBaseInitializer($serviceManager);
-    	$core->loadModuleIntoComposerAutoloader(ComposerAutoloader::getComposerAutoloader());
-    	return $core;
-    }
     
 	/**
 	 * return default ServiceManager instance
