@@ -1,6 +1,9 @@
 TinyBS
 ============
 
+Do Not Use From Now On!
+============
+
 Howto
 ------------
 
